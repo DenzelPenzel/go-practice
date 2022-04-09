@@ -37,12 +37,12 @@ func Overlap(A []int, B []int) bool {
 	return B[1] >= A[0] && A[1] >= B[0]
 }
 
-func Min(a int, b int) int {
-	if a > b {
-		return b
-	}
-	return a
-}
+// func Min(a int, b int) int {
+// 	if a > b {
+// 		return b
+// 	}
+// 	return a
+// }
 
 func Max(a int, b int) int {
 	if a > b {
@@ -251,6 +251,43 @@ func main() {
 	fmt.Println("hello")
 	f.Println("hey")
 	fm.Println("hi")
+}
+
+func Min(a int, rest ...int) int {
+	minValue := a
+	for _, v := range rest {
+		if v < minValue {
+			minValue = v
+		}
+	}
+	return minValue
+}
+
+func minimumDeletions(A []int) int {
+	n := len(A)
+	minval, maxval := math.Inf(1), math.Inf(-1)
+	i, j := 0, 0
+
+	for k, v := range v {
+		if minval > v {
+			minval = v
+			i = k
+		}
+		if maxval < v {
+			maxval = v
+			j = k
+		}
+	}
+
+	if i > j {
+		i, j = j, i
+	}
+
+	removeFrontBack := i + 1 + n - j
+	removeFront := i + 1 + j - i
+	removeBack := n - j + j - i
+
+	return Min(removeFrontBack, removeFront, removeBack)
 }
 
 func Version() string {
