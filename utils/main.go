@@ -293,3 +293,21 @@ func minimumDeletions(A []int) int {
 func Version() string {
 	return runtime.Version()
 }
+
+func subarraySum(nums []int, target int) int {
+	mapping := make(map[int]int)
+	prefix := 0
+	res := 0
+
+	for _, v := range nums {
+		prefix += v
+
+		if _, ok := mapping[prefix-target]; ok {
+			res += mapping[prefix-target]
+		}
+
+		mapping[prefix-target] += 1
+	}
+
+	return res
+}
