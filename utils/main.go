@@ -311,3 +311,20 @@ func subarraySum(nums []int, target int) int {
 
 	return res
 }
+
+func differByOne(dict []string) bool {
+	seen := make(map[string]bool)
+
+	for _, word := range dict {
+		for i, _ := range word {
+			pattern := word[:i] + "*" + word[i+1:]
+
+			if _, ok := seen[pattern]; ok {
+				return true
+			}
+			seen[pattern] = true
+		}
+	}
+
+	return false
+}
