@@ -32,6 +32,7 @@ func longestConsecutive(nums []int) int {
 	}
 
 	for _, x := range nums {
+		// if the previous value does not exist in Set
 		// start the search with the lowest value
 		if !seen[x-1] {
 			xx := x + 1
