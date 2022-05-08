@@ -328,3 +328,29 @@ func differByOne(dict []string) bool {
 
 	return false
 }
+
+func DFS(root *TreeNode, voyage []int) []int {
+	idx := 0
+	res := make([]int, 0, len(voyage))
+
+	if DFS_II(root, &idx, voyage, &res) {
+		return res
+	}
+
+	return []int{-1}
+}
+
+func DFS_II(node *TreeNode, idx *int, voyage []int, res *[]int) bool {
+	if node == nil {
+		return true
+	}
+
+	*idx += 1
+
+	if node.Left != nil && node.Left.Val != voyage[*idx] {
+		*res = append(*res, node.Val)
+		return DFS_II(node.Right, idx, voyage, res) && DFS_II(node.Left, idx, voyage, res)
+	}
+
+	return DFS_II(node.Left, idx, voyage, res) && DFS_II(node.Right, idx, voyage, res)
+}
