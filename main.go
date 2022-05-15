@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/denisschmidt/go-leetcode/leetcode"
 	"github.com/denisschmidt/go-leetcode/logging"
 )
 
@@ -12,4 +14,6 @@ func main() {
 	logger.Log("info", "starting up service")
 	logger.Log("warning", "no tasks found")
 	logger.Log("error", "exiting: no work performed")
+
+	fmt.Println(leetcode.GetOrder([][]int{{1, 2}, {2, 4}, {3, 2}, {4, 1}}))
 }
