@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/denisschmidt/go-leetcode/logging"
@@ -53,6 +54,70 @@ func Max(a int, b int) int {
 		return a
 	}
 	return b
+}
+
+type Shop struct {
+	dist  int
+	price int
+	row   int
+	col   int
+}
+
+func highestRankedKItems(grid [][]int, pricing []int, start []int, k int) [][]int {
+	n, m := len(grid), len(grid[0])
+	seen := make([][]bool, n)
+	queue := make([][]int, 0)
+	queue = append(queue, []int{start[0], start[1]})
+	items := make([]Shop, 0)
+	dist := 0
+
+	for i := range seen {
+		seen[i] = make([]bool, m)
+	}
+
+	for len(queue) > 0 {
+		size := len(queue)
+
+		for k := 0; k < size; k++ {
+			i, j := queue[0][0], queue[0][1]
+			queue = queue[1:]
+
+			if pricing[0] <= grid[i][j] && grid[i][j] <= pricing[1] {
+				items = append(items, Shop{dist, grid[i][j], i, j})
+			}
+
+			for _, p := range [][]int{{i + 1, j}, {i - 1, j}, {i, j - 1}, {i, j + 1}} {
+				x, y := p[0], p[1]
+
+				if x >= 0 && x < n && y >= 0 && y < m {
+					if grid[x][y] >= 1 {
+						queue = append(queue, []int{x, y})
+						seen[x][y] = true
+					}
+				}
+			}
+		}
+		dist++
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].dist != items[j].dist {
+			return items[i].dist < items[j].dist
+		}
+		if items[i].price != items[j].price {
+			return items[i].price < items[j].price
+		}
+		if items[i].row != items[j].row {
+			return items[i].row < items[j].row
+		}
+		return items[i].col < items[j].col
+	})
+
+	res := make([][]int, 0, k)
+	for i := 0; i < len(items) && i < k; i++ {
+		res = append(res, []int{items[i].row, items[i].col})
+	}
+	return res
 }
 
 func main() {

@@ -92,5 +92,4 @@ func (this *PQ) Pop() interface{} {
 	*this = (*this)[:len(*this)-1]
 
 	return p
-
 }
