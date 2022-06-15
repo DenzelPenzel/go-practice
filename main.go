@@ -131,3 +131,73 @@ func main() {
 
 	// fmt.Println(leetcode.GetOrder([][]int{{1, 2}, {2, 4}, {3, 2}, {4, 1}}))
 }
+
+func shortestBridge(A [][]int) int {
+	n, m := len(A), len(A[0])
+	stack := make([][]int, 0)
+	seen := make([][]bool, n)
+
+	for i := range seen {
+		seen[i] = make([]bool, m)
+	}
+
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			if A[i][j] == 1 {
+				stack = append(stack, []int{i, j})
+				break
+			}
+		}
+		if len(stack) > 0 {
+			break
+		}
+	}
+
+	for len(stack) > 0 {
+		i, j := stack[len(stack)-1][0], stack[len(stack)-1][1]
+		stack = stack[:len(stack)-1]
+		for _, p := range [][]int{{i + 1, j}, {i - 1, j}, {i, j + 1}, {i, j - 1}} {
+			x, y := p[0], p[1]
+
+			if 0 <= x && x < n && 0 <= y && y < m && A[x][y] == 1 && !seen[x][y] {
+				seen[x][y] = true
+				stack = append(stack, []int{x, y})
+			}
+		}
+	}
+
+	queue := make([][]int, 0)
+	for i, v := range seen {
+		for j := range v {
+			if v[j] {
+				queue = append(queue, []int{i, j})
+			}
+		}
+	}
+
+	step := 0
+
+	for len(queue) > 0 {
+		size := len(queue)
+
+		for k := 0; k < size; k++ {
+			i, j := queue[0][0], queue[0][1]
+			queue := queue[1:]
+
+			for _, p := range [][]int{{i + 1, j}, {i - 1, j}, {i, j + 1}, {i, j - 1}} {
+				x, y := p[0], p[1]
+
+				if 0 <= x && x < n && 0 <= y && y < m && !seen[x][y] {
+					if A[x][y] == 1 {
+						return step
+					}
+					seen[x][y] = true
+					queue = append(queue, []int{x, y})
+				}
+			}
+		}
+		step += 1
+	}
+
+	return step
+}
