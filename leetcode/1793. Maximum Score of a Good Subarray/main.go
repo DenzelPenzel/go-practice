@@ -32,6 +32,7 @@ func maximumScore(nums []int, K int) int {
 	nums = append([]int{0}, nums...)
 
 	for idx := 0; idx < len(nums); idx++ {
+		// mono increasing stack
 		for len(st) > 0 && nums[st[len(st)-1]] >= nums[idx] {
 			k := st[len(st)-1]
 			st = st[:len(st)-1]
