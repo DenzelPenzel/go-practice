@@ -1,6 +1,6 @@
 module github.com/denisschmidt/go-leetcode
 
-go 1.17
+go 1.18
 
 require (
 	github.com/bitly/go-simplejson v0.5.0 // indirect
