@@ -304,6 +304,87 @@ func (this *Skiplist) Erase(num int) bool {
 	return res
 }
 
+type LRUNode struct {
+	next, prev *LRUNode
+	key, val   int
+}
+
+type LRUCache struct {
+	head, tail *LRUNode
+	mapping    map[int]*LRUNode
+	capacity   int
+}
+
+func Constructor(capacity int) LRUCache {
+	head := new(LRUNode)
+	tail := new(LRUNode)
+	head.next = tail
+	tail.prev = head
+
+	return LRUCache{
+		capacity: capacity,
+		mapping:  map[int]*LRUNode{},
+		head:     head,
+		tail:     tail,
+	}
+}
+
+func (lc *LRUCache) Get(key int) int {
+	if node, ok := lc.mapping[key]; ok {
+		lc.remove(node)
+		lc.append(node)
+		return node.val
+	}
+
+	return -1
+}
+
+func (lc *LRUCache) Put(key int, value int) {
+	if lc.capacity == 0 {
+		return
+	}
+
+	if node, ok := lc.mapping[key]; ok {
+		node.val = value
+
+		lc.remove(node)
+		lc.append(node)
+		return
+	}
+
+	// remove the last used node from double ll
+	if len(lc.mapping) == lc.capacity {
+		last_node := lc.last()
+
+		node := lc.mapping[last_node.key]
+
+		delete(lc.mapping, last_node.key)
+		lc.remove(node)
+	}
+
+	newNode := new(LRUNode)
+	lc.mapping[key] = newNode
+	lc.append(newNode)
+}
+
+func (lc *LRUCache) remove(node *LRUNode) {
+	node.prev.next = node.next
+	node.next.prev = node.prev
+}
+
+func (lc *LRUCache) last() *LRUNode {
+	return lc.tail.prev
+}
+
+// append - insert a new node in the head of the double ll
+func (lc *LRUCache) append(node *LRUNode) {
+	node.next = lc.head.next
+	node.prev = lc.head
+
+	lc.head.next.prev = node
+	lc.head.next = node
+}
+
 func main() {
 	// logger := logging.New(time.RFC3339, true)
 
