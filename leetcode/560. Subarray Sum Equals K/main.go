@@ -20,20 +20,15 @@ package leetcode
 
 func subarraySum(nums []int, target int) int {
 	mapping := make(map[int]int)
+	mapping[0] = 1
 	prefix := 0
 	res := 0
 
 	for _, v := range nums {
 		prefix += v
-
 		if _, ok := mapping[prefix-target]; ok {
 			res += mapping[prefix-target]
 		}
-
-		if prefix == target {
-			res++
-		}
-
 		mapping[prefix]++
 	}
 
