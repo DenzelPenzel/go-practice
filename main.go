@@ -407,3 +407,56 @@ func main() {
 	fmt.Println("val: %t", slist.Erase(1))
 	fmt.Println("val: %t", slist.Search(1))
 }
+
+func mostProfitablePath(edges [][]int, bob int, amount []int) int {
+	n := len(edges) + 1
+	graph := make([][]int, n)
+	parent := make([]int, n)
+	aliceDist := make([]int, n)
+
+	for _, p := range edges {
+		graph[p[0]] = append(graph[p[0]], p[1])
+	}
+
+	var dfs func(v, p, d int)
+	dfs = func(v, p, d int) {
+		parent[v] = p
+		aliceDist[v] = d
+		for _, u := range graph[v] {
+			if u != p {
+				dfs(u, v, d+1)
+			}
+		}
+	}
+
+	var dfs2 func(v, p int) int
+	dfs2 = func(v, p int) int {
+		if len(graph[v]) == 1 && graph[v][0] == p {
+			return 0
+		}
+		res := -math.MinInt32
+		for _, u := range graph[v] {
+			if u != p {
+				res = maxI(res, amount[u]+dfs2(u, v))
+			}
+		}
+		return res
+	}
+
+	dfs(0, -1, 0)
+
+	v := bob
+	d := 0
+
+	for v != 0 {
+		if aliceDist[v] == d {
+			amount[v] = amount[v] / 2
+		} else {
+			amount[v] = 0
+		}
+		v = parent[v]
+		d++
+	}
+
+	return amount[0] + dfs2(0, -1)
+}
