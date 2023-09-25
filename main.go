@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"reflect"
 	"sort"
 )
 
@@ -199,7 +200,7 @@ type Skiplist struct {
 	prob float32
 }
 
-func Constructor() Skiplist {
+func CConstructor() Skiplist {
 	return Skiplist{
 		head: &ListNode{
 			val:  math.MinInt64,
@@ -396,7 +397,7 @@ func main() {
 
 	// fmt.Println(leetcode.GetOrder([][]int{{1, 2}, {2, 4}, {3, 2}, {4, 1}}))
 
-	slist := Constructor()
+	slist := CConstructor()
 	slist.Add(1)
 	slist.Add(2)
 	slist.Add(3)
@@ -406,6 +407,14 @@ func main() {
 	fmt.Println("val: %t", slist.Erase(0))
 	fmt.Println("val: %t", slist.Erase(1))
 	fmt.Println("val: %t", slist.Search(1))
+
+	A := []int{1, 3, 2}
+	B := make([]int, len(A))
+	copy(B, A)
+	sort.Ints(B)
+	same := reflect.ValueOf(A).Pointer() == reflect.ValueOf(B).Pointer()
+	fmt.Println(same)
+	fmt.Println(A, B)
 }
 
 func mostProfitablePath(edges [][]int, bob int, amount []int) int {
@@ -459,4 +468,11 @@ func mostProfitablePath(edges [][]int, bob int, amount []int) int {
 	}
 
 	return amount[0] + dfs2(0, -1)
+}
+
+func maxI(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
