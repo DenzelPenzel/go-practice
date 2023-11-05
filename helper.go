@@ -6,25 +6,45 @@ import "github.com/emirpasic/gods/maps/treemap"
 var mod = int(1e9) + 7
 var dirs = [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 
+// Clearing maps
+func clearMaps(m map[string]int) {
+	for k := range m {
+		delete(m, k)
+	}
+}
+
+// Increasing the length of a slice
+func incSlice() {
+	s := make([]int, 100)
+	if len(s) < 200 {
+		// Need to extend s
+		s = append(s, make([]int, 100)...)
+	}
+}
+
 func maxI(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
+
 func minI(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
+
 func absI(a int) int {
 	if a >= 0 {
 		return a
 	}
 	return -a
 }
+
 func cloneIntArray(old []int) []int { clone := make([]int, len(old)); copy(clone, old); return clone }
+
 func createInt1dSlice(params ...int) []int {
 	n := params[0]
 	d := 0
