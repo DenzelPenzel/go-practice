@@ -120,4 +120,12 @@ BenchmarkLinkListTraverse-16 128  28738407  ns/op
 BenchmarkColumnTraverse-16   30   126878630 ns/op
 BenchmarkRowTraverse-16      310  11060883  ns/op
 
+### Map keys
+
+Slice is a good example of a type that can’t be used as a key. Only values that can
+be run through the hash function are eligible. A good way to recognize types that
+can be a key is if the type can be used in a comparison operation. I can’t compare
+two slice values.
+
+
 
