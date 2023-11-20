@@ -51,12 +51,49 @@ highest allocation to lowest allocation
 
 ### Goroutine
 
+- Goroutine occupies a few KB, this can support a large number of threads in a limited memory space goroutine
+- Goroutine use less memory space and reduces the cost of context switching
 - Each Goroutine is given its own block of memory called a stack
 - Each stack starts out as a 2048 byte (2k) allocation
 - Func is called -> allocation of the stack space to execute func -> this block of memory is called a frame
 - Size of a frame for a given function is calculated at compile time
-- If the compiler doesn’t know the size of a value at compile time, the
-  value has to be constructed on the heap
+- If the compiler doesn’t know the size of a value at compile time, the value has to be constructed on the heap
+- Concept of coroutines allows a set of reusable functions to run on a set of threads
+- Even if a coroutine blocks, other coroutines of the thread can be scheduled and transferred runtime to other runnable threads
+
+### Problems with large number of threads
+
+- High memory usage
+- High CPU consumption for scheduling
+
+### G scheduler
+
+- it use G-M-P model
+- G — represents goroutine, which is a task to be executed
+- M - represents the thread of the operating system, which is scheduled and managed by the scheduler of the operating system
+- P — represents the processor, which can be thought of as a local scheduler running on a thread
+- GOMAXPROCS set to the number of cores of the current machine
+- 4 active operating system threads will be created on a 4 core machine
+
+### Memory escape
+
+In Go, variables with a fully known life cycle are allocated on the stack for efficiency.
+If a variable's life cycle is not entirely predictable, it 'escapes' and is allocated on the heap for proper memory management.
+
+Typical situations that can cause variables to escape onto the heap:
+
+- Returning a local variable pointer within a method may extend its life cycle beyond the stack, causing a stack overflow
+
+- Sending a pointer or a value with a pointer to a channel makes it challenging for the compiler to predict when
+  the variable will be released, as the receiving goroutine is unknown at compile time
+
+- Storing a pointer or value with a pointer on a slice, like []*string, leads to the slice's contents escaping to the heap,
+  even if the array behind it is initially allocated on the stack.
+  
+- If the slice's capacity is exceeded during appending, reallocation occurs on the heap
+
+- Calling a method on an interface type, such as invoking methods on ```io.Reader```, dynamically dispatches the method at runtime.
+  This causes the value and the storage behind the slice to escape, resulting in heap allocation.
 
 ### Cache line
 
@@ -126,6 +163,3 @@ Slice is a good example of a type that can’t be used as a key. Only values tha
 be run through the hash function are eligible. A good way to recognize types that
 can be a key is if the type can be used in a comparison operation. I can’t compare
 two slice values.
-
-
-
