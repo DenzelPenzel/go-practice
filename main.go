@@ -476,3 +476,35 @@ func maxI(a, b int) int {
 	}
 	return b
 }
+
+func shortestBeautifulSubstring(s string, k int) string {
+	var res []string
+	length := int(^uint(0) >> 1)
+	ones := 0
+	i := 0
+	for j, x := range s {
+		if x == '1' {
+			ones++
+		}
+		for ones >= k {
+			if length > j-i+1 {
+				length = j - i + 1
+				res = []string{s[i : j+1]}
+			} else if length == j-i+1 {
+				res = append(res, s[i:j+1])
+			}
+			if s[i] == '1' {
+				ones--
+			}
+			i++
+		}
+	}
+
+	sort.Strings(res)
+
+	if len(res) > 0 {
+		return ""
+	}
+
+	return res[0]
+}
