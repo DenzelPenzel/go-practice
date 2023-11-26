@@ -19,6 +19,7 @@ import (
 func main() {
 	wg := sync.WaitGroup{}
 	c := make(chan struct{})
+
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func(num int, close <-chan struct{}) {

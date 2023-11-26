@@ -70,7 +70,7 @@ highest allocation to lowest allocation
 
 - it use G-M-P model
 - G — represents goroutine, which is a task to be executed
-- M - represents the thread of the operating system, which is scheduled and managed by the scheduler of the operating system
+- M — represents the thread of the operating system, which is scheduled and managed by the scheduler of the operating system
 - P — represents the processor, which can be thought of as a local scheduler running on a thread
 - GOMAXPROCS set to the number of cores of the current machine
 - 4 active operating system threads will be created on a 4 core machine
