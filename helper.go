@@ -5,6 +5,7 @@ import "github.com/emirpasic/gods/maps/treemap"
 // @formatter:off
 var mod = int(1e9) + 7
 var dirs = [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+var length = int(^uint(0) >> 1) // Set length to max int value
 
 // Clearing maps
 func clearMaps(m map[string]int) {
