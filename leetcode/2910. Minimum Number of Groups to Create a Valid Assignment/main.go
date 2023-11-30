@@ -72,7 +72,7 @@ func minGroupsForValidAssignment(A []int) int {
 		return 1
 	}
 
-	res := math.MaxInt32
+	res := int(^uint(0) >> 1)
 	minFreq := count[minKey(count)]
 
 	for groupSize := 1; groupSize < minFreq+1; groupSize++ {
