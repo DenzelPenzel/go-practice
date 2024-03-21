@@ -14,6 +14,17 @@ func clearMaps(m map[string]int) {
 	}
 }
 
+// Fill the array 
+A := make([]int, 10)
+tmp := A
+fmt.Println(A) // [0,0,0,0,0,0,0,0,0,0]
+for _, c := range [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} {
+	copy(tmp, c) // [1,2,3,0,0,0,0,0,0,0]
+	tmp = tmp[len(c):] // [0,0,0,0,0,0,0]
+}
+fmt.Println(nums)
+
+
 // Increasing the length of a slice
 func incSlice() {
 	s := make([]int, 100)

@@ -75,6 +75,21 @@ highest allocation to lowest allocation
 - GOMAXPROCS set to the number of cores of the current machine
 - 4 active operating system threads will be created on a 4 core machine
 
+### CPU caches
+
+Prefetcher attempts to predict what data is needed before instructions request the data so it’s already present in either the L1 or L2 cache.
+
+Program can read/write a byte of memory as the smallest unit of memory access.
+Caching systems granularity is 64 bytes. 
+This 64 byte block of memory is called a cache line.
+
+Prefetcher works best when the instructions being executed create predictable access patterns to memory. One way to create a predictable access pattern to memory is to construct a contiguous block of memory and then iterate over that memory performing a linear traversal with a predictable stride.
+
+Array is data structure with predictable access patterns. However, the slice is the most important data structure in Go. Slices in Go use an array underneath.
+
+Prefetcher will pick up predictable data access pattern and begin to efficiently pull the data into the processor, thus reducing data access latency costs.
+
+
 ### Memory escape
 
 In Go, variables with a fully known life cycle are allocated on the stack for efficiency.
@@ -157,9 +172,53 @@ BenchmarkLinkListTraverse-16 128  28738407  ns/op
 BenchmarkColumnTraverse-16   30   126878630 ns/op
 BenchmarkRowTraverse-16      310  11060883  ns/op
 
+
+# Translation Lookaside Buffer (TLB)
+
+OS shares physical memory by breaking the physical memory into pages and mapping pages to virtual memory for any given running program. Each OS can decide the size of a page, but 4k, 8k, 16k are reasonable and common sizes.
+
+The TLB is a small cache inside the processor that helps to reduce latency on translating a virtual address to a physical address within the scope of an OS page and offset inside the page.
+
+TLB cache miss can cause large latencies because now the hardware has to wait for the OS to scan its page table to locate the right page for the virtual address
+
+
 ### Map keys
 
 Slice is a good example of a type that can’t be used as a key. Only values that can
 be run through the hash function are eligible. A good way to recognize types that
 can be a key is if the type can be used in a comparison operation. I can’t compare
 two slice values.
+
+
+
+### Slices
+
+```
+aa := make([]string, 0)
+aa = append(aa, "a")
+aa = append(aa, "b")
+aa = append(aa, "c")
+aa = append(aa, "d") // len: 4 cap: 4
+```
+
+small capacity
+in this case ```append``` creates a new backing array (doubling or growing by 25%)
+and then copies the values from the `old` array into the `new` one
+
+```
+aa = append(aa, "e") // len: 5 cap: 8
+```
+
+Slices offer the capability to prevent additional copies and heap allocations of the underlying array
+
+```
+slice1 := []string{"A", "B", "C", "D", "E"} // len: 5 cap: 5
+                              ^
+                              |
+                              pointer on that position
+
+slice2 := slice1[2:4]                       // len: 2 cap: 3
+```
+
+```slice2``` only allows me to access the elements at index 2 and 3 (C and D) of the original slice’s backing array. The length of slice2 is 2 and not 5 like in slice1 and the capacity is 3 since there are now 3 elements from that pointer position.
+

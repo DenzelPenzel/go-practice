@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -415,6 +416,57 @@ func main() {
 	same := reflect.ValueOf(A).Pointer() == reflect.ValueOf(B).Pointer()
 	fmt.Println(same)
 	fmt.Println(A, B)
+
+	aa := make([]string, 0)
+	aa = append(aa, "a")
+	aa = append(aa, "b")
+	aa = append(aa, "c")
+	aa = append(aa, "d")
+	inspectSlice(aa) // len: 4 cap: 4
+
+	// small capacity
+	// in this case ```append``` creates a new backing array (doubling or growing by 25%)
+	// and then copies the values from the `old` array into the `new` one
+	aa = append(aa, "e") // len: 5 cap: 8
+	inspectSlice(aa)
+
+	// s := "世界"
+
+	// fmt.Println(len(s), utf8.RuneLen(s))
+
+	//test()
+
+	type shutdownError struct {
+		Message string
+	}
+
+	var se *shutdownError
+
+	e := errors.New("hello world")
+
+	x := 10
+
+	fmt.Println(&se, &e, &x)
+}
+
+func test() {
+	type user struct {
+		name     string
+		username string
+	}
+
+	var users map[string]user
+
+	// panic
+	users["vasya"] = user{name: "vasya", username: "vas"}
+}
+
+func inspectSlice(slice []string) {
+	fmt.Println("=======")
+	fmt.Printf("Length[%d] Capacity[%d]\n", len(slice), cap(slice))
+	for i := range slice {
+		fmt.Printf("[%d] %p %s\n", i, &slice[i], slice[i])
+	}
 }
 
 func mostProfitablePath(edges [][]int, bob int, amount []int) int {
