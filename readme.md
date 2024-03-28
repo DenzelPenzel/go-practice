@@ -1,3 +1,6 @@
+## Go practice
+The repository contains a collection of algorithmic and architectural questions related to the programming language Golang.
+
 ### Zero Value Concept
 
 Every single value I construct in Go is initialized at least to its zero value state
