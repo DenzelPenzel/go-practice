@@ -55,7 +55,11 @@ func absI(a int) int {
 	return -a
 }
 
-func cloneIntArray(old []int) []int { clone := make([]int, len(old)); copy(clone, old); return clone }
+func cloneIntArray(old []int) []int { 
+	clone := make([]int, len(old)); 
+	copy(clone, old); 
+	return clone 
+}
 
 func createInt1dSlice(params ...int) []int {
 	n := params[0]
@@ -101,7 +105,13 @@ func getSieve(n int) []bool {
 	}
 	return _sieve
 }
-func lcm(a int, b int) int { return (a * b) / gcd(a, b) }
+// least common multiple
+// a = 4 b = 6 then res = 12
+func lcm(a int, b int) int { 
+	return (a * b) / gcd(a, b) 
+}
+// greatest common divisor 
+// a = 8 b = 12 then res = 4
 func gcd(a int, b int) int {
 	if b == 0 {
 		return a
@@ -214,7 +224,12 @@ type Seg struct {
 	n    int
 }
 
-func NewSeg(n int) *Seg { return &Seg{tree: make([]int, 2*n), n: n} }
+func NewSeg(n int) *Seg { 
+	return &Seg{
+		tree: make([]int, 2*n), 
+		n: n,
+	} 
+}
 func NewSegFromArray(array []int) *Seg {
 	n := len(array)
 	tree := make([]int, n*2)

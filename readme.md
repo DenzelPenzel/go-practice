@@ -52,6 +52,19 @@ highest allocation to lowest allocation
 
 - Data in golang is moved by value
 
+### Strings
+
+- Immutable, strings are byte sequences, Go uses UTF-8 encoding by default
+- Rune type is an alias for int32 used to represent a Unicode code point
+- Unicode code point is a unique number assigned to each character 
+
+```
+// Convert string to rune slice
+str = "Hello, 世界"
+runes := []rune(str)
+fmt.Println(runes) // Output: [72 101 108 108 111 44 32 19990 30028]
+```
+
 ### Goroutine
 
 - Goroutine occupies a few KB, this can support a large number of threads in a limited memory space goroutine

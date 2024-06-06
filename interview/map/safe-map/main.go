@@ -21,7 +21,8 @@ type Mp interface {
 	// This method operates without blocking and is capable of immediate execution and return
 	Set(key string, val interface{})
 
-	// Reading a key, if the key does not exist, it blocks, waiting for the key to become available or for a timeout to occur
+	// Reading a key, if the key does not exist, it blocks
+	// Waiting for the key to become available or for a timeout to occur
 	Get(key string)
 }
 
@@ -90,7 +91,9 @@ func (m *Map) Get(key string, timeout time.Duration) interface{} {
 
 		m.mapping[key] = r
 		m.rmx.Unlock()
+
 		log.Println("waiting... key ->", key)
+
 		select {
 		case <-r.ch:
 			return r.value

@@ -7,7 +7,6 @@ True indicates that all characters are distinct, while false implies the presenc
 
 It's important to ensure that the characters in the string are limited to ASCII characters.
 The length of the string will not exceed 3000 characters
-
 */
 
 package main

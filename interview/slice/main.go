@@ -17,9 +17,10 @@ func test1() {
 	str2[1] = "new"
 	fmt.Println(str1) // [a b new]
 
-	str2 = append(str2, "z", "x", "y") // this operation involve to expand and generate a new array, not effect str1
-	fmt.Println(str1)                  // [a b new]
-	fmt.Println(str2)                  // [b new z x y]
+	// this operation involve to expand and generate a new array, not effect str1
+	str2 = append(str2, "z", "x", "y")
+	fmt.Println(str1) // [a b new]
+	fmt.Println(str2) // [b new z x y]
 }
 
 // ==========================================================================================================

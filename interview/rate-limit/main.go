@@ -28,7 +28,9 @@ type Ban struct {
 }
 
 func NewBan(ctx context.Context) *Ban {
-	b := &Ban{visitIPs: make(map[string]time.Time)}
+	b := &Ban{
+		visitIPs: make(map[string]time.Time),
+	}
 
 	go func() {
 		timer := time.NewTimer(time.Minute * 1)
@@ -75,7 +77,6 @@ func main() {
 	ban := NewBan(ctx)
 
 	wait := &sync.WaitGroup{}
-
 	wait.Add(1000 * 100)
 
 	for i := 0; i < 1000; i++ {
@@ -88,7 +89,6 @@ func main() {
 				}
 			}(j)
 		}
-
 	}
 
 	wait.Wait()

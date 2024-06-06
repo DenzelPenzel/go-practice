@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -387,68 +386,6 @@ func (lc *LRUCache) append(node *LRUNode) {
 	lc.head.next = node
 }
 
-func main() {
-	// logger := logging.New(time.RFC3339, true)
-
-	// logger.Log("info", "starting up service")
-	// logger.Log("warning", "no tasks found")
-	// logger.Log("error", "exiting: no work performed")
-
-	// fmt.Println(maximumProfit([]int{5, 4, 6, 2, 3}, []int{8, 5, 4, 3, 5}, 10))
-
-	// fmt.Println(leetcode.GetOrder([][]int{{1, 2}, {2, 4}, {3, 2}, {4, 1}}))
-
-	slist := CConstructor()
-	slist.Add(1)
-	slist.Add(2)
-	slist.Add(3)
-	fmt.Println("val: %t", slist.Search(0))
-	slist.Add(4)
-	fmt.Println("val: %t", slist.Search(1))
-	fmt.Println("val: %t", slist.Erase(0))
-	fmt.Println("val: %t", slist.Erase(1))
-	fmt.Println("val: %t", slist.Search(1))
-
-	A := []int{1, 3, 2}
-	B := make([]int, len(A))
-	copy(B, A)
-	sort.Ints(B)
-	same := reflect.ValueOf(A).Pointer() == reflect.ValueOf(B).Pointer()
-	fmt.Println(same)
-	fmt.Println(A, B)
-
-	aa := make([]string, 0)
-	aa = append(aa, "a")
-	aa = append(aa, "b")
-	aa = append(aa, "c")
-	aa = append(aa, "d")
-	inspectSlice(aa) // len: 4 cap: 4
-
-	// small capacity
-	// in this case ```append``` creates a new backing array (doubling or growing by 25%)
-	// and then copies the values from the `old` array into the `new` one
-	aa = append(aa, "e") // len: 5 cap: 8
-	inspectSlice(aa)
-
-	// s := "世界"
-
-	// fmt.Println(len(s), utf8.RuneLen(s))
-
-	//test()
-
-	type shutdownError struct {
-		Message string
-	}
-
-	var se *shutdownError
-
-	e := errors.New("hello world")
-
-	x := 10
-
-	fmt.Println(&se, &e, &x)
-}
-
 func test() {
 	type user struct {
 		name     string
@@ -559,4 +496,68 @@ func shortestBeautifulSubstring(s string, k int) string {
 	}
 
 	return res[0]
+}
+
+func lcm(a int, b int) int {
+	return (a * b) / gcd(a, b)
+}
+
+func gcd(a int, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
+}
+
+func main() {
+	// logger := logging.New(time.RFC3339, true)
+
+	// logger.Log("info", "starting up service")
+	// logger.Log("warning", "no tasks found")
+	// logger.Log("error", "exiting: no work performed")
+
+	// fmt.Println(maximumProfit([]int{5, 4, 6, 2, 3}, []int{8, 5, 4, 3, 5}, 10))
+
+	// fmt.Println(leetcode.GetOrder([][]int{{1, 2}, {2, 4}, {3, 2}, {4, 1}}))
+
+	slist := CConstructor()
+	slist.Add(1)
+	slist.Add(2)
+	slist.Add(3)
+	fmt.Println("val: %t", slist.Search(0))
+	slist.Add(4)
+	fmt.Println("val: %t", slist.Search(1))
+	fmt.Println("val: %t", slist.Erase(0))
+	fmt.Println("val: %t", slist.Erase(1))
+	fmt.Println("val: %t", slist.Search(1))
+
+	A := []int{1, 3, 2}
+	B := make([]int, len(A))
+	copy(B, A)
+	sort.Ints(B)
+	same := reflect.ValueOf(A).Pointer() == reflect.ValueOf(B).Pointer()
+	fmt.Println(same)
+	fmt.Println(A, B)
+
+	aa := make([]string, 0)
+	aa = append(aa, "a")
+	aa = append(aa, "b")
+	aa = append(aa, "c")
+	aa = append(aa, "d")
+	inspectSlice(aa) // len: 4 cap: 4
+
+	// small capacity
+	// in this case ```append``` creates a new backing array (doubling or growing by 25%)
+	// and then copies the values from the `old` array into the `new` one
+	aa = append(aa, "e") // len: 5 cap: 8
+	inspectSlice(aa)
+
+	// s := "世界"
+	// fmt.Println(len(s), utf8.RuneLen(s))
+
+	str := "Hello, 世界"
+	for index, r := range str {
+		fmt.Printf("Character: %c, Unicode: %U, Byte position: %d\n", r, r, index)
+	}
+
 }

@@ -17,7 +17,7 @@ Accept as many packets as possible without exceeding:
 10 packets per 5 seconds
 
 1076 1074 1076 1076 1076 1076 1090
-a a d d a a a
+a     a     d   d    a    a    a
 */
 package main
 

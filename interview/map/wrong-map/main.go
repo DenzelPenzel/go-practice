@@ -7,20 +7,17 @@ import (
 )
 
 // Find the error with the following code
-
 type Users struct {
 	mapping map[string]int
 	mx      *sync.Mutex
 }
 
 /*
-	Although sync.Mutex is used for write locks, concurrent reading and writing of map is unsafe
-	Map is a reference type
-	When reading and writing concurrently, multiple coroutines access the same address through pointers, that is, access shared variables
-	And at this time, there is competition between reading and writing resources at the same time
-	The error message will be reported: "fatal error: concurrent map read and map write".
-
-
+Although sync.Mutex is used for write locks, concurrent reading and writing of map is unsafe
+Map is a reference type when reading and writing concurrently, multiple coroutines access the same address through pointers,
+that is, access shared variables and at this time, there is competition between reading and writing
+resources at the same time
+The error message will be reported: "fatal error: concurrent map read and map write".
 */
 
 func (u *Users) Add(name string, age int) {
