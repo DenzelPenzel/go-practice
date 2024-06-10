@@ -65,6 +65,40 @@ runes := []rune(str)
 fmt.Println(runes) // Output: [72 101 108 108 111 44 32 19990 30028]
 ```
 
+### Channels
+
+Synchronous Communication:
+
+- Send Operation: when a goroutine tries to send a value into a non-buffered channel, it will block until another goroutine is ready to receive that value
+
+- Receive Operation: when a goroutine tries to receive from a non-buffered channel, it will block until another goroutine sends a value into that channel
+
+```
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	ch := make(chan int)
+
+	go func() {
+        // operation blocks if there is no corresponding receive operation waiting
+        // remain blocked until another goroutine executes <-ch to receive the value
+		ch <- 42 
+		fmt.Println("Sent value")
+	}()
+
+	value := <-ch // Receiving goroutine will block here until the sending goroutine sends
+	fmt.Println("Received value:", value)
+}
+```
+
+
+
+
+
 ### Goroutine
 
 - Goroutine occupies a few KB, this can support a large number of threads in a limited memory space goroutine
