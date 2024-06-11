@@ -1,6 +1,85 @@
 ## Go practice
 The repository contains a collection of algorithmic and architectural questions related to the programming language Golang.
 
+
+### Data types
+- boolean 
+- int 
+  - signed and unsigned
+- floating-point 
+  - float32, float64
+- Complex numbers 
+  - complex64, complex128
+- Byte 
+  - alias for uint8
+- Rune 
+  - alias for int32, represents a Unicode code point
+- String
+  - represents a sequence of bytes
+- Arrays
+  - Fixed-size sequences of elements of a single type
+- Slices
+  - Dynamic, flexible view into the elements of an array
+- Structs
+    ```
+    type Person struct {
+        Name string
+        Age  int
+    }
+    ```
+- Maps
+  - Unordered collections of key-value pairs ```map[string]int```
+
+- Channels
+  - communication between goroutines ```chan int```
+
+- Pointers
+  - Holds the memory address of another variable ```*int``` is a pointer to an integer
+
+### Synchronization primitives
+- Mutex
+  - sync.Mutex
+  - sync.RWMutex - multiple readers or one writer at a time
+
+- WaitGroup
+  
+- Cond
+  - used to block goroutines until a condition is met
+    ```
+        var mu sync.Mutex
+        var cond = sync.NewCond(&mu)
+
+        go func() {
+            mu.Lock()
+            cond.Wait() // Wait for a condition
+            // work after condition is met
+            mu.Unlock()
+        }()
+
+        mu.Lock()
+        // prepare condition
+        cond.Signal() // Wake one goroutine waiting on cond
+        mu.Unlock()
+    ```
+
+- Once
+  - code is executed only once, even if called from multiple goroutines
+  ```
+    var once sync.Once
+    once.Do(func() {
+        // initialize something
+    })
+  ```
+
+- Atomic Operations (low-level atomic memory primitives)
+    ```
+    var counter int64
+    atomic.AddInt64(&counter, 1) // Atomic increment
+    atomic.LoadInt64(&counter) // Atomic read
+    atomic.StoreInt64(&counter, 42) // Atomic write
+    atomic.CompareAndSwapInt64(&counter, old, new) // CAS operation
+    ```
+
 ### Zero Value Concept
 
 Every single value I construct in Go is initialized at least to its zero value state
@@ -67,11 +146,9 @@ fmt.Println(runes) // Output: [72 101 108 108 111 44 32 19990 30028]
 
 ### Channels
 
-Synchronous Communication:
+- Send Operation: send a value into a non-buffered channel, it will block until another goroutine is ready to receive that value
 
-- Send Operation: when a goroutine tries to send a value into a non-buffered channel, it will block until another goroutine is ready to receive that value
-
-- Receive Operation: when a goroutine tries to receive from a non-buffered channel, it will block until another goroutine sends a value into that channel
+- Receive Operation: receive from a non-buffered channel, it will block until another goroutine sends a value into that channel
 
 ```
 package main
@@ -96,16 +173,15 @@ func main() {
 ```
 
 
-
-
-
 ### Goroutine
 
 - Goroutine occupies a few KB, this can support a large number of threads in a limited memory space goroutine
 - Goroutine use less memory space and reduces the cost of context switching
 - Each Goroutine is given its own block of memory called a stack
 - Each stack starts out as a 2048 byte (2k) allocation
-- Func is called -> allocation of the stack space to execute func -> this block of memory is called a frame
+- Func is called 
+  - Allocation of the stack space to execute func 
+  - This block of memory is called a frame
 - Size of a frame for a given function is calculated at compile time
 - If the compiler doesn’t know the size of a value at compile time, the value has to be constructed on the heap
 - Concept of coroutines allows a set of reusable functions to run on a set of threads
