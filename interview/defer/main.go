@@ -94,3 +94,12 @@ func printInt(v string, i int) {
 func printIntPointer(v string, i *int) {
 	fmt.Printf("%s=%d\n", v, *i)
 }
+
+// func main() {
+// 	x := 10
+// 	increment(&x)
+// }
+
+func increment(value *int) {
+	*value += 1
+}
