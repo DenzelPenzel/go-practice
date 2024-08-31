@@ -560,4 +560,22 @@ func main() {
 		fmt.Printf("Character: %c, Unicode: %U, Byte position: %d\n", r, r, index)
 	}
 
+	// Go makes a copy, but the copy is hidden from us, and only ```v``` can see that copied array
+	a := [3]int{1, 2, 3}
+	b := [3]int{4, 5, 6}
+	for i, v := range a {
+		if i == 1 {
+			a = b
+		}
+		fmt.Println(v)
+	}
+
+	// slice descriptor contains a pointer to an underlying array, along with length and capacity
+	// pointer to a slice (&aaa) -> references the slice descriptor, not the underlying array
+
+	aaa := []int{7, 8, 9}
+	for i, v := range *(&aaa) {
+		fmt.Println(i, v)
+	}
+
 }
