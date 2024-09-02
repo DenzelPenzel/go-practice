@@ -62,7 +62,6 @@ func (rl *RateLimiter) Wait() {
 
 func main() {
 	limiter := NewRateLimiter(5, 1, time.Second)
-
 	var wg sync.WaitGroup
 
 	for i := 0; i < 10; i++ {

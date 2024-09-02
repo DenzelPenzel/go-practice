@@ -11,10 +11,8 @@ For each input, respond with either a 'd' which instructs the router to DROP the
 packet, or an 'a' which instructs the router to ACCEPT the packet.
 
 Accept as many packets as possible without exceeding:
-
-3 packets per 1 second
-
-10 packets per 5 seconds
+  - 3 packets per 1 second
+  - 10 packets per 5 seconds
 
 1076 1074 1076 1076 1076 1076 1090
 a     a     d   d    a    a    a
@@ -80,7 +78,7 @@ func main() {
 			packetCount++
 		} else {
 			packetCount = int(math.Max(float64(0), float64(packetCount-1)))
-			res = append(res, "b")
+			res = append(res, "d")
 		}
 	}
 

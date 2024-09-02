@@ -30,14 +30,17 @@ import (
 	"time"
 )
 
+const (
+	batch  = 3
+	target = 345
+)
+
 var data = []int{1, 2, 3, 10, 999, 8, 345, 7, 98, 33, 66, 77, 88, 68, 96}
 
 func main() {
 	timer := time.NewTimer(time.Second * 5)
 	ctx, cancel := context.WithCancel(context.Background())
-	resChan := make(chan bool)
-	batch := 3
-	target := 345
+	found := make(chan bool)
 
 	for i := 0; i < len(data); i += batch {
 		end := i + batch
@@ -45,14 +48,15 @@ func main() {
 			end = len(data) - 1
 		}
 		// run G
-		go search(ctx, data[i:end], target, resChan)
+		go search(ctx, data[i:end], target, found)
 	}
 
 	select {
 	case <-timer.C:
 		fmt.Println("Timeout! Not Found")
 		cancel()
-	case <-resChan:
+
+	case <-found:
 		fmt.Println("Found it!")
 		cancel()
 	}
@@ -60,7 +64,7 @@ func main() {
 	time.Sleep(time.Second * 2)
 }
 
-func search(ctx context.Context, data []int, target int, resChan chan bool) {
+func search(ctx context.Context, data []int, target int, found chan bool) {
 	for _, v := range data {
 		select {
 		case <-ctx.Done():
@@ -71,9 +75,8 @@ func search(ctx context.Context, data []int, target int, resChan chan bool) {
 		fmt.Printf("val: %d \n", v)
 		time.Sleep(time.Microsecond * 1500)
 		if target == v {
-			resChan <- true
+			found <- true
 			return
 		}
 	}
-
 }

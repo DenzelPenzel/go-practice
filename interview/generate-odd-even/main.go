@@ -48,11 +48,13 @@ func main() {
 	wg.Add(2)
 
 	go func() {
-		defer wg.Done()
+		defer func() {
+			close(out)
+			wg.Done()
+		}()
 		for i := 0; i < 5; i++ {
 			out <- rand.Intn(5)
 		}
-		close(out)
 	}()
 
 	go func() {
