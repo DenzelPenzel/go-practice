@@ -39,7 +39,19 @@ The repository contains a collection of algorithmic and architectural questions 
 ### Synchronization primitives
 - Mutex
   - sync.Mutex
-  - sync.RWMutex - multiple readers or one writer at a time
+  - sync.RWMutex - multiple readers acquire the lock simultaneously but only one writer at a time
+  
+  - Mutexes using low-level atomic operations and OS-level synchronization primitives 
+    (like futexes on Linux) provided by the Go runtime
+  
+  - If the mutex is already <b>locked</b>, the runtime adds the goroutine to a <b>waiting queue</b> and blocks it
+  
+  - Atomic operations are supported through specific CPU instructions like 
+    ```test-and-set```, ```compare-and-swap```, or ```fetch-and-add```
+  
+  - OS maintains a queue of threads that are waiting for the mutex
+  
+  - When mutex is released, the OS wakes up one or more threads from the queue and allows them to try to acquire the mutex
 
 - WaitGroup
   
@@ -308,8 +320,27 @@ Viewing Inlining Decisions
 - G — represents goroutine, which is a task to be executed
 - M — represents the thread of the operating system, which is scheduled and managed by the scheduler of the operating system
 - P — represents the processor, which can be thought of as a local scheduler running on a thread
+- Minimize  context switches  
+- Keep local queue per P, and global queue
+- If local queues of P is full, the scheduler uses a global run queue
+- If the load is imbalanced, the scheduler may migrate goroutines between P to better distribute work
+
+### Scheduling Decisions
+- Preemption - ensure that no single goroutine can monopolize a P
+
+### Blocking Operations
+When a goroutine performs a blocking operation (like I/O or a system call), the ```M``` executing that ```G``` may block. The scheduler can detach the ```P``` from the blocked ```M``` and attach it to another ```M``` to continue running other goroutines, ensuring that the system remains responsive. Once the blocking operation completes, the original ```M``` can be reused
+
+<b>Idle M Handling</b>: 
+  If an ```M``` becomes idle and there are more ```Ms``` than ```Ps```, the Go runtime may park the idle ```M``` (put it to sleep), reducing resource usage
+
+
+### Parallelism
 - GOMAXPROCS set to the number of cores of the current machine
 - 4 active operating system threads will be created on a 4 core machine
+- If GOMAXPROCS is set to more than 1, the Go runtime can execute multiple goroutines in parallel 
+  on multiple processors. This allows the Go runtime to utilize multiple CPU cores
+
 
 ### CPU caches
 

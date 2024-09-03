@@ -17,7 +17,8 @@ import (
 )
 
 type Mp interface {
-	// Storing key/value pairs will activate a wake-up, if the coroutine attempting to read the key is in a suspended state
+	// Storing key/value pairs will activate a wake-up
+	// If the coroutine attempting to read the key is in a suspended state
 	// This method operates without blocking and is capable of immediate execution and return
 	Set(key string, val interface{})
 
