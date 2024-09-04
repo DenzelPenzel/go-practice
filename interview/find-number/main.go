@@ -27,6 +27,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -35,12 +36,16 @@ const (
 	target = 345
 )
 
-var data = []int{1, 2, 3, 10, 999, 8, 345, 7, 98, 33, 66, 77, 88, 68, 96}
+var data []int
 
 func main() {
 	timer := time.NewTimer(time.Second * 5)
 	ctx, cancel := context.WithCancel(context.Background())
 	found := make(chan bool)
+
+	for i := 0; i < 10_000; i++ {
+		data = append(data, rand.Intn(1000))
+	}
 
 	for i := 0; i < len(data); i += batch {
 		end := i + batch
@@ -70,10 +75,13 @@ func search(ctx context.Context, data []int, target int, found chan bool) {
 		case <-ctx.Done():
 			fmt.Println("Task canceled!")
 			return
+
 		default:
 		}
+
 		fmt.Printf("val: %d \n", v)
 		time.Sleep(time.Microsecond * 1500)
+
 		if target == v {
 			found <- true
 			return

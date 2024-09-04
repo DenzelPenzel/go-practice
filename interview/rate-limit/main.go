@@ -46,6 +46,7 @@ func NewBan(ctx context.Context) *Ban {
 				}
 				b.lock.Unlock()
 				timer.Reset(time.Minute * 1)
+
 			case <-ctx.Done():
 				return
 			}
