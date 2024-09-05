@@ -111,6 +111,8 @@ fmt.Println(runes) // Output: [72 101 108 108 111 44 32 19990 30028]
 
 ### Channels
 
+- Channels are <b>concurrency primitive</b> and can be used to synchronize operations between G
+
 - Send Operation: send a value into a non-buffered channel, it will block until another goroutine is ready to receive that value
 
 - Receive Operation: receive from a non-buffered channel, it will block until another goroutine sends a value into that channel
@@ -126,8 +128,8 @@ func main() {
 	ch := make(chan int)
 
 	go func() {
-        // operation blocks if there is no corresponding receive operation waiting
-        // remain blocked until another goroutine executes <-ch to receive the value
+    // operation blocks if there is no corresponding receive operation waiting
+    // remain blocked until another goroutine executes <-ch to receive the value
 		ch <- 42 
 		fmt.Println("Sent value")
 	}()
@@ -136,6 +138,12 @@ func main() {
 	fmt.Println("Received value:", value)
 }
 ```
+
+### If you create a channel, send data into it, but never read from it
+
+- unbuffered channel: program will block indefinitely
+- buffered channel: if buffer become full and no receiver, program will block
+
 
 ### Allocation
 
@@ -250,25 +258,6 @@ Common techniques for this include techniques:
     - Combine values into larger ones to reduce memory allocations and alleviate pressure on the garbage collector, resulting in faster garbage collections
 
     - Values without pointers aren't scanned by the garbage collector. Eliminating pointers from actively used values can enhance garbage collection efficiency
-
-### Run Bench
-
-```
-// generate pprof and binary
-# go test -bench . -benchmem -memprofile p.out -gcflags -m=2
-# go test -bench . -benchtime 3s -benchmem -memprofile p.out
-# go test -bench . -benchtime 3s -benchmem -cpuprofile p.out -gcflags -m=2
-
-// run tools
-# go tool pprof -noinlines p.out
-# go tool pprof --noinlines  memcpu.test p.out
-
-// Profiling commands
-# go tool pprof -http :8080 stream.test p.out
-# press ```o```
-# list <func_name>
-# weblist <func_name>
-```
 
 ### Inlining optimization
 
@@ -462,7 +451,22 @@ can be a key is if the type can be used in a comparison operation. I can’t com
 two slice values.
 
 
+### Slices vs Array
+
+
 ### Slices
+
+- Slice descriptor contains a pointer to an underlying array, along with length and capacity
+
+- Pointer to a slice (&aaa) -> ref to the slice descriptor, not the underlying array
+  ```
+    aaa := []int{7, 8, 9}
+    for i, v := range *(&aaa) {
+      fmt.Println(i, v)
+    }
+  ```
+
+### Small capacity of slices
 
 ```
 aa := make([]string, 0)
@@ -470,9 +474,12 @@ aa = append(aa, "a")
 aa = append(aa, "b")
 aa = append(aa, "c")
 aa = append(aa, "d") // len: 4 cap: 4
-```
 
-### Small capacity of slices
+// small capacity
+// in this case ```append``` creates a new backing array (doubling or growing by 25%)
+// and then copies the values from the `old` array into the `new` one
+aa = append(aa, "e") // len: 5 cap: 8
+```
 
 In this case ```append``` creates a new backing array (doubling or growing by 25%)
 and then copies the values from the `old` array into the `new` one
@@ -531,6 +538,27 @@ Bcs there is a padding byte sitting between the flag and counter fields for the 
 
 Idea of alignment is to allow the hardware to read memory
 more efficiently by placing memory on specific alignment boundaries.
+
+
+### Run Bench
+
+```
+// generate pprof and binary
+# go test -bench . -benchmem -memprofile p.out -gcflags -m=2
+# go test -bench . -benchtime 3s -benchmem -memprofile p.out
+# go test -bench . -benchtime 3s -benchmem -cpuprofile p.out -gcflags -m=2
+
+// run tools
+# go tool pprof -noinlines p.out
+# go tool pprof --noinlines  memcpu.test p.out
+
+// Profiling commands
+# go tool pprof -http :8080 stream.test p.out
+# press ```o```
+# list <func_name>
+# weblist <func_name>
+```
+
 
 ### Padding example
 

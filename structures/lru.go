@@ -77,7 +77,3 @@ func (this *LRUCache) Remove(node *Node) {
 	node.prev.next = node.next
 	node.next.prev = node.prev
 }
-
-func main() {
-
-}

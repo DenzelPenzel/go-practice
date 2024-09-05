@@ -1,6 +1,10 @@
 package main
 
-import "github.com/emirpasic/gods/maps/treemap"
+import (
+	"time"
+	"github.com/emirpasic/gods/maps/treemap"
+)
+
 
 // @formatter:off
 var mod = int(1e9) + 7
@@ -34,25 +38,8 @@ func incSlice() {
 	}
 }
 
-func maxI(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func minI(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func absI(a int) int {
-	if a >= 0 {
-		return a
-	}
-	return -a
+func sleep(s int) {
+	<- time.After(time.Second * time.Duration(s))
 }
 
 func cloneIntArray(old []int) []int { 

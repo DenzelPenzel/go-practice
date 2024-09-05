@@ -3,58 +3,9 @@ package main
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"reflect"
 	"sort"
 )
-
-func maximumProfit(present []int, future []int, budget int) int {
-	A := make([][]int, 0)
-	for i := 0; i < len(future); i++ {
-		if future[i]-present[i] > 0 {
-			A = append(A, []int{present[i], future[i] - present[i]})
-		}
-	}
-
-	if len(A) == 0 {
-		return 0
-	}
-
-	n := len(A)
-	dp := [][]int{}
-
-	for i := 0; i < n; i++ {
-		dp = append(dp, []int{})
-		for j := 0; j <= budget; j++ {
-			dp[i] = append(dp[i], 0)
-		}
-	}
-
-	for w := 0; w <= budget; w++ {
-		if A[0][0] <= w {
-			dp[0][w] = A[0][1]
-		}
-	}
-
-	for i := 1; i < n; i++ {
-		for w := 0; w <= budget; w++ {
-			if A[i][0] <= w {
-				dp[i][w] = Max(dp[i-1][w], dp[i-1][w-A[i][0]]+A[i][1])
-			} else {
-				dp[i][w] = dp[i-1][w]
-			}
-		}
-	}
-
-	return dp[len(dp)-1][budget]
-}
-
-func Max(a int, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
 
 type Shop struct {
 	dist  int
@@ -190,202 +141,6 @@ func shortestBridge(A [][]int) int {
 	return step
 }
 
-type ListNode struct {
-	val, cnt   int
-	next, down *ListNode
-}
-
-type Skiplist struct {
-	head *ListNode
-	prob float32
-}
-
-func CConstructor() Skiplist {
-	return Skiplist{
-		head: &ListNode{
-			val:  math.MinInt64,
-			cnt:  1,
-			next: nil,
-			down: nil,
-		},
-		prob: 0.25,
-	}
-}
-
-func (this *Skiplist) Search(target int) bool {
-	node := this.head
-	for node != nil && node.val < target {
-		if node.next != nil && node.next.val == target {
-			return true
-		}
-		if node.next != nil && node.next.val < target {
-			node = node.next
-		} else {
-			node = node.down
-		}
-	}
-	return false
-}
-
-func (this *Skiplist) Add(num int) {
-	node := this.head
-	st := make([]*ListNode, 0)
-
-	for node != nil && node.val < num {
-		if node.next != nil && node.next.val <= num {
-			node = node.next
-		} else {
-			st = append(st, node)
-			node = node.down
-		}
-	}
-
-	if node != nil {
-		for node != nil {
-			node.cnt += 1
-			node = node.down
-		}
-	} else {
-		var prev *ListNode
-
-		for len(st) != 0 {
-			if len(st) != 0 {
-				node = st[len(st)-1]
-				newNode := &ListNode{val: num, cnt: 1, next: node.next, down: prev}
-				node.next = newNode
-				prev = newNode
-				st = st[:len(st)-1]
-			} else {
-				newNode := &ListNode{val: math.MinInt64, cnt: 1, next: nil, down: this.head}
-				this.head = newNode
-				nextNode := &ListNode{val: num, down: prev, cnt: 1, next: nil}
-				this.head.next = prev
-				prev = nextNode
-			}
-
-			r := rand.Float32()
-
-			if r >= this.prob {
-				break
-			}
-		}
-	}
-}
-
-func (this *Skiplist) Erase(num int) bool {
-	node := this.head
-	st := make([]*ListNode, 0)
-
-	for node != nil {
-		if node.next != nil && node.next.val < num {
-			node = node.next
-		} else {
-			st = append(st, node)
-			node = node.down
-		}
-	}
-
-	res := false
-
-	for len(st) > 0 {
-		node := st[len(st)-1]
-
-		if node.next != nil && node.next.val == num {
-			res = true
-			if node.next.cnt > 1 {
-				node.next.cnt -= 1
-			} else {
-				node.next = node.next.next
-			}
-		} else {
-			break
-		}
-	}
-
-	return res
-}
-
-type LRUNode struct {
-	next, prev *LRUNode
-	key, val   int
-}
-
-type LRUCache struct {
-	head, tail *LRUNode
-	mapping    map[int]*LRUNode
-	capacity   int
-}
-
-func Constructor(capacity int) LRUCache {
-	head := new(LRUNode)
-	tail := new(LRUNode)
-	head.next = tail
-	tail.prev = head
-
-	return LRUCache{
-		capacity: capacity,
-		mapping:  map[int]*LRUNode{},
-		head:     head,
-		tail:     tail,
-	}
-}
-
-func (lc *LRUCache) Get(key int) int {
-	if node, ok := lc.mapping[key]; ok {
-		lc.remove(node)
-		lc.append(node)
-		return node.val
-	}
-
-	return -1
-}
-
-func (lc *LRUCache) Put(key int, value int) {
-	if lc.capacity == 0 {
-		return
-	}
-
-	if node, ok := lc.mapping[key]; ok {
-		node.val = value
-
-		lc.remove(node)
-		lc.append(node)
-		return
-	}
-
-	// remove the last used node from double ll
-	if len(lc.mapping) == lc.capacity {
-		last_node := lc.last()
-
-		node := lc.mapping[last_node.key]
-
-		delete(lc.mapping, last_node.key)
-		lc.remove(node)
-	}
-
-	newNode := new(LRUNode)
-	lc.mapping[key] = newNode
-	lc.append(newNode)
-}
-
-func (lc *LRUCache) remove(node *LRUNode) {
-	node.prev.next = node.next
-	node.next.prev = node.prev
-}
-
-func (lc *LRUCache) last() *LRUNode {
-	return lc.tail.prev
-}
-
-// append - insert a new node in the head of the double ll
-func (lc *LRUCache) append(node *LRUNode) {
-	node.next = lc.head.next
-	node.prev = lc.head
-
-	lc.head.next.prev = node
-	lc.head.next = node
-}
-
 func test() {
 	type user struct {
 		name     string
@@ -459,77 +214,12 @@ func mostProfitablePath(edges [][]int, bob int, amount []int) int {
 	return amount[0] + dfs2(0, -1)
 }
 
-func maxI(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func shortestBeautifulSubstring(s string, k int) string {
-	var res []string
-	length := int(^uint(0) >> 1)
-	ones := 0
-	i := 0
-	for j, x := range s {
-		if x == '1' {
-			ones++
-		}
-		for ones >= k {
-			if length > j-i+1 {
-				length = j - i + 1
-				res = []string{s[i : j+1]}
-			} else if length == j-i+1 {
-				res = append(res, s[i:j+1])
-			}
-			if s[i] == '1' {
-				ones--
-			}
-			i++
-		}
-	}
-
-	sort.Strings(res)
-
-	if len(res) > 0 {
-		return ""
-	}
-
-	return res[0]
-}
-
-func lcm(a int, b int) int {
-	return (a * b) / gcd(a, b)
-}
-
-func gcd(a int, b int) int {
-	if b == 0 {
-		return a
-	}
-	return gcd(b, a%b)
-}
-
 func main() {
 	// logger := logging.New(time.RFC3339, true)
 
 	// logger.Log("info", "starting up service")
 	// logger.Log("warning", "no tasks found")
 	// logger.Log("error", "exiting: no work performed")
-
-	// fmt.Println(maximumProfit([]int{5, 4, 6, 2, 3}, []int{8, 5, 4, 3, 5}, 10))
-
-	// fmt.Println(leetcode.GetOrder([][]int{{1, 2}, {2, 4}, {3, 2}, {4, 1}}))
-
-	slist := CConstructor()
-	slist.Add(1)
-	slist.Add(2)
-	slist.Add(3)
-	fmt.Println("val: %t", slist.Search(0))
-	slist.Add(4)
-	fmt.Println("val: %t", slist.Search(1))
-	fmt.Println("val: %t", slist.Erase(0))
-	fmt.Println("val: %t", slist.Erase(1))
-	fmt.Println("val: %t", slist.Search(1))
 
 	A := []int{1, 3, 2}
 	B := make([]int, len(A))
@@ -572,7 +262,6 @@ func main() {
 
 	// slice descriptor contains a pointer to an underlying array, along with length and capacity
 	// pointer to a slice (&aaa) -> references the slice descriptor, not the underlying array
-
 	aaa := []int{7, 8, 9}
 	for i, v := range *(&aaa) {
 		fmt.Println(i, v)
