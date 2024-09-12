@@ -38,6 +38,14 @@ The repository contains a collection of algorithmic and architectural questions 
 
 ### Synchronization primitives
 - Mutex
+  ```
+  package sync
+
+  type Mutex struct {
+    state int32
+    sema  uint32
+  }
+  ```
   - sync.Mutex
   - sync.RWMutex - multiple readers acquire the lock simultaneously but only one writer at a time
   
@@ -52,9 +60,23 @@ The repository contains a collection of algorithmic and architectural questions 
   - OS maintains a queue of threads that are waiting for the mutex
   
   - When mutex is released, the OS wakes up one or more threads from the queue and allows them to try to acquire the mutex
+  
 
 - WaitGroup
-  
+  ```
+  type WaitGroup struct {
+	  noCopy noCopy
+
+	  state atomic.Uint64
+	  sema  uint32
+  }
+
+  type noCopy struct{}
+
+  func (*noCopy) Lock()   {}
+  func (*noCopy) Unlock() {}
+  ```
+
 - Cond
   - used to block goroutines until a condition is met
     ```
