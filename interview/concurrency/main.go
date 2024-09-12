@@ -3,18 +3,45 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
 func main() {
-	// test1()
-	// test2()
-	// test3()
-	// test5()
-	// test6()
-	test10()
+	var wc sync.WaitGroup
+	m := make(chan string, 3)
+	fff := sync.Mutex{}
+
+	go func() {
+		defer close(m)
+		for i := 0; i < 5; i++ {
+			wc.Add(1)
+			go func(mm chan<- string, i int, group *sync.WaitGroup) {
+				defer wc.Done()
+				fff.Lock()
+				mm <- fmt.Sprintf("Goroutine %s", strconv.Itoa(i))
+				fff.Unlock()
+			}(m, i, &wc)
+		}
+		wc.Wait()
+	}()
+
+	for q := range m {
+		fmt.Println(q)
+	}
+
+	// for {
+	// 	select {
+	// 	case q, ok := <-m:
+	// 		if !ok {
+	// 			return
+	// 		} else {
+	// 			fmt.Println(q)
+	// 		}
+	// 	}
+	// }
 }
 
 // 1 Mutex
