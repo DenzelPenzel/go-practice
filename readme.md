@@ -133,6 +133,8 @@ fmt.Println(runes) // Output: [72 101 108 108 111 44 32 19990 30028]
 
 ### Channels
 
+- Thread-safe and can be safely used by multiple goroutines for sending and receiving values concurrently
+
 - Channels are <b>concurrency primitive</b> and can be used to synchronize operations between G
 
 - Send Operation: send a value into a non-buffered channel, it will block until another goroutine is ready to receive that value
