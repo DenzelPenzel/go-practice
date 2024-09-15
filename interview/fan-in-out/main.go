@@ -41,6 +41,7 @@ func main() {
 
 	// Generate numbers in separate goroutines
 	go func() {
+		defer close(numChan)
 		for i := 0; i < 10; i++ {
 			generationWG.Add(1)
 			go func(mm chan<- int, i int, group *sync.WaitGroup) {
@@ -49,7 +50,6 @@ func main() {
 			}(numChan, i, &generationWG)
 		}
 		generationWG.Wait()
-		close(numChan)
 	}()
 
 	var wg sync.WaitGroup
