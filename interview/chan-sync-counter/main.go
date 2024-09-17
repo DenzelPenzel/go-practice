@@ -18,23 +18,17 @@ and can be used to synchronize operations between goroutines.
 
 func main() {
 	counterChan := make(chan int)
-	doneChan := make(chan bool)
-
+	doneChan := make(chan struct{})
 	var wg sync.WaitGroup
 
+	// Counter goroutine that listens for increments
 	go func() {
 		counter := 0
-		for {
-			select {
-			case inc := <-counterChan:
-				counter += inc
-
-			case <-doneChan:
-				fmt.Println("Final Counter:", counter)
-				close(doneChan)
-				return
-			}
+		for inc := range counterChan {
+			counter += inc
 		}
+		fmt.Println("Final Counter:", counter) // This will print after the channel is closed
+		doneChan <- struct{}{}
 	}()
 
 	// Launch 1000 goroutines to send increment requests
@@ -42,16 +36,15 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			counterChan <- 1
+			counterChan <- 1 // Send increment
 		}()
 	}
 
 	// Wait for all goroutines to finish
 	wg.Wait()
 
-	// Signal the counter goroutine to print the final value and exit
-	doneChan <- true
+	// Close the counter channel to signal completion
+	close(counterChan)
 
-	// Wait for the counter goroutine to finish
 	<-doneChan
 }

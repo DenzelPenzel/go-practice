@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func buf() {
+func main() {
 	var wc sync.WaitGroup
 	m := make(chan string, 3)
 	fff := sync.Mutex{}
