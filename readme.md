@@ -37,82 +37,110 @@ The repository contains a collection of algorithmic and architectural questions 
   - Holds the memory address of another variable ```*int``` is a pointer to an integer
 
 ### Synchronization primitives
-- Mutex
+
+#### Mutex
+
+  https://victoriametrics.com/blog/go-sync-mutex/index.html
+
   ```
   package sync
 
   type Mutex struct {
-    state int32
-    sema  uint32
+    state int32 // Waiter ... Starving, Woken, Locked
+                    29 bit      1 bit    1 bit  1 bit
+    sema  uint32 //
   }
   ```
+
+  ```
+  func (m *Mutex) Lock() {
+    // Fast path: grab unlocked mutex.
+    if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
+      if race.Enabled {
+        race.Acquire(unsafe.Pointer(m))
+      }
+      return
+    }
+    // Slow path (outlined so that the fast path can be inlined)
+    m.lockSlow()
+  }
+  ```
+    Mutex has two modes: 
+      - Normal (G waiting for the mutex in queue)
+        - New G has priority because they're already running on CPU
+        - Old G need to waking up
+      
+      - Starvation mode 
+        - If a G fails to acquire the lock for more than 1 millisecond
+        - G in queue has more priority
+  
   - sync.Mutex
   - sync.RWMutex - multiple readers acquire the lock simultaneously but only one writer at a time
-  
+
   - Mutexes using low-level atomic operations and OS-level synchronization primitives 
     (like futexes on Linux) provided by the Go runtime
-  
+
   - If the mutex is already <b>locked</b>, the runtime adds the goroutine to a <b>waiting queue</b> and blocks it
-  
+
   - Atomic operations are supported through specific CPU instructions like 
     ```test-and-set```, ```compare-and-swap```, or ```fetch-and-add```
-  
+
   - OS maintains a queue of threads that are waiting for the mutex
-  
+
   - When mutex is released, the OS wakes up one or more threads from the queue and allows them to try to acquire the mutex
-  
 
-- WaitGroup
+
+#### WaitGroup
+```
+type WaitGroup struct {
+  noCopy noCopy
+
+  state atomic.Uint64
+  sema  uint32
+}
+
+type noCopy struct{}
+
+func (*noCopy) Lock()   {}
+func (*noCopy) Unlock() {}
+```
+
+#### Cond
+- Used to block goroutines until a condition is met
   ```
-  type WaitGroup struct {
-	  noCopy noCopy
+      var mu sync.Mutex
+      var cond = sync.NewCond(&mu)
 
-	  state atomic.Uint64
-	  sema  uint32
-  }
+      go func() {
+          mu.Lock()
+          cond.Wait() // Wait for a condition
+          // work after condition is met
+          mu.Unlock()
+      }()
 
-  type noCopy struct{}
-
-  func (*noCopy) Lock()   {}
-  func (*noCopy) Unlock() {}
-  ```
-
-- Cond
-  - used to block goroutines until a condition is met
-    ```
-        var mu sync.Mutex
-        var cond = sync.NewCond(&mu)
-
-        go func() {
-            mu.Lock()
-            cond.Wait() // Wait for a condition
-            // work after condition is met
-            mu.Unlock()
-        }()
-
-        mu.Lock()
-        // prepare condition
-        cond.Signal() // Wake one goroutine waiting on cond
-        mu.Unlock()
-    ```
-
-- Once
-  - code is executed only once, even if called from multiple goroutines
-  ```
-    var once sync.Once
-    once.Do(func() {
-        // initialize something
-    })
+      mu.Lock()
+      // prepare condition
+      cond.Signal() // Wake one goroutine waiting on cond
+      mu.Unlock()
   ```
 
-- Atomic Operations (low-level atomic memory primitives)
-    ```
-    var counter int64
-    atomic.AddInt64(&counter, 1) // Atomic increment
-    atomic.LoadInt64(&counter) // Atomic read
-    atomic.StoreInt64(&counter, 42) // Atomic write
-    atomic.CompareAndSwapInt64(&counter, old, new) // CAS operation
-    ```
+#### Once
+- Code is executed only once, even if called from multiple goroutines
+```
+  var once sync.Once
+  once.Do(func() {
+      // initialize something
+  })
+  ```
+
+### Atomic Operations (low-level atomic memory primitives)
+```
+var counter int64
+atomic.AddInt64(&counter, 1) // Atomic increment
+atomic.LoadInt64(&counter) // Atomic read
+atomic.StoreInt64(&counter, 42) // Atomic write
+atomic.CompareAndSwapInt64(&counter, old, new) // CAS operation
+```
 
 ### Pointers
 
@@ -479,8 +507,28 @@ two slice values.
 
 
 ### Slices
-
-- Slice descriptor contains a pointer to an underlying array, along with length and capacity
+  - Slice descriptor contains a pointer to an underlying array, along with length and capacity
+    ```
+    type slice struct {
+      array unsafe.Pointer
+      len   int
+      cap   int
+    }
+    ```
+  
+  - The underlying array could be allocated on the heap, but not the slice header itself
+  
+  - If capacity unknown or capacity exceeds 64 KB -> move on the heap
+    
+    ```
+    slice := make([]int, 0, 3)
+    println("slice:", slice, "- slice addr:", &slice)
+    slice = append(slice, 1, 2, 3) 
+    
+    // it’s no longer on our goroutine stack
+    // slice exceeds capacity, address of the underlying array changed
+    slice = append(slice, 4)
+    ```
 
 - Pointer to a slice (&aaa) -> ref to the slice descriptor, not the underlying array
   ```

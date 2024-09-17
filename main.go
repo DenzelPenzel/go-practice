@@ -190,7 +190,7 @@ func mostProfitablePath(edges [][]int, bob int, amount []int) int {
 		res := -math.MinInt32
 		for _, u := range graph[v] {
 			if u != p {
-				res = maxI(res, amount[u]+dfs2(u, v))
+				res = max(res, amount[u]+dfs2(u, v))
 			}
 		}
 		return res
@@ -257,7 +257,7 @@ func main() {
 		if i == 1 {
 			a = b
 		}
-		fmt.Println(v)
+		fmt.Println("--", v)
 	}
 
 	// slice descriptor contains a pointer to an underlying array, along with length and capacity
@@ -266,5 +266,10 @@ func main() {
 	for i, v := range *(&aaa) {
 		fmt.Println(i, v)
 	}
+
+	array := [6]int{0, 1, 2, 3, 4, 5}
+	slice := array[1:3] // [1 2]
+
+	fmt.Println(cap(slice), len(slice), slice)
 
 }
