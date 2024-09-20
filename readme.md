@@ -336,7 +336,11 @@ Viewing Inlining Decisions
   
 - Each Goroutine is given its own block of memory called a stack
 
-- Each stack starts out as a 2048 byte (2k) allocation
+- Each stack starts out as a 2048 byte (2k) allocation, go runtime handle deallocating stack
+  - runtime.morestack() - responsible for growing the stack
+  - runtime.stackfree() - deallocation of stack memory
+  - runtime.copystack() - responsible for copying the current stack when the stack grows or shrinks
+  - stack is limited in size and grows dynamically
 
 - Func is called 
   - Allocation of the stack space to execute func 
@@ -572,6 +576,11 @@ slice2 := slice1[2:4]                       // len: 2 cap: 3
 ```
 
 ```slice2``` only allows me to access the elements at index 2 and 3 (C and D) of the original slice’s backing array. The length of slice2 is 2 and not 5 like in slice1 and the capacity is 3 since there are now 3 elements from that pointer position.
+
+### strings.Builder vs string concat
+- strings.Builder maintains an internal byte slice ([]byte) and grow dynamically
+- Working without unnecessary copying
+- Offers O(n) vs O(n^2) for concat
 
 
 ### Race condition 
