@@ -362,13 +362,26 @@ Viewing Inlining Decisions
 ### G scheduler
 
 - it use G-M-P model
-- G — represents goroutine, which is a task to be executed
-- M — represents the thread of the operating system, which is scheduled and managed by the scheduler of the operating system
-- P — represents the processor, which can be thought of as a local scheduler running on a thread
+- M represents the number of OS threads
+- N represents the number of G
+- P (Processor) represents a logical processor that holds a run queue of G. The number of Ps is set by GOMAXPROCS
 - Minimize  context switches  
-- Keep local queue per P, and global queue
-- If local queues of P is full, the scheduler uses a global run queue
-- If the load is imbalanced, the scheduler may migrate goroutines between P to better distribute work
+- Global Run Queue: exists for G that don't have a separate P or when local queues are empty
+- Scheduler moves goroutines between local and global queues to balance the workload across all Ps
+
+### P (Processor): The Execution Context
+- Each P has its own **local run queue**, holding goroutines ready to run
+- If a P's run queue is empty, it can steal G from other Ps' run queues, balancing the load across processors
+- The number of Ps limits the number of G that can actively execute in **parallel**, aligning with the number of CPU cores available
+
+### M (Machine): OS Thread Management
+- **Creation and Reuse**: New M's are created as needed up to a limit, and idle M's are reused to minimize overhead
+- **OS Thread Pool**: Go maintains a pool of M's to handle system calls and other blocking operations
+
+### How Goroutines are Executed
+- Spawn G (using ```go```) -> added to the run queue of a **P**
+- Scheduler selects G from the P's run queue to execute on an available **M**
+
 
 ### Scheduling Decisions
 - Preemption - ensure that no single goroutine can monopolize a P

@@ -180,16 +180,151 @@ func main() {
 
 ### Pipeline
 ```
+func gen(words ...string) <-chan string {
+	out := make(chan string)
 
+	go func() {
+		for _, v := range words {
+			out <- v
+		}
+		close(out)
+	}()
+	return out
+}
+
+func toUpper(in <-chan string) <-chan string {
+	out := make(chan string)
+
+	go func() {
+		for s := range in {
+			out <- strings.ToUpper(s)
+		}
+		close(out)
+	}()
+	return out
+}
+
+func exclaim(in <-chan string) <-chan string {
+	out := make(chan string)
+	go func() {
+		for s := range in {
+			out <- s + "!"
+		}
+		close(out)
+	}()
+	return out
+}
 
 func main() {
-    pipeline := Exclaim(ToUpper(Generator("hello", "world", "golang", "pipeline")))
+	pipeline := exclaim(toUpper(gen("hello", "world", "golang", "pipeline")))
 
-    for result := range pipeline {
-        fmt.Println(result)
+	for v := range pipeline {
+		fmt.Println(v)
+	}
+}
+```
+
+
+### Rate limit
+```
+func main() {
+    // Create a ticker that ticks every 500ms
+    limiter := time.Tick(500 * time.Millisecond)
+
+    jobs := []int{1, 2, 3, 4, 5}
+
+    for _, job := range jobs {
+        <-limiter // Wait for the next tick
+        go func(j int) {
+            fmt.Printf("Processing job %d at %v\n", j, time.Now())
+        }(job)
+    }
+
+    // Wait to allow goroutines to finish
+    time.Sleep(3 * time.Second)
+}
+```
+
+
+### Publish/Subscribe (Pub/Sub)
+```
+// Broker manages subscriptions and publishing
+type Broker struct {
+    subscribers map[chan string]struct{}
+    lock        sync.RWMutex
+}
+
+// NewBroker creates a new Broker
+func NewBroker() *Broker {
+    return &Broker{
+        subscribers: make(map[chan string]struct{}),
     }
 }
 
+// Subscribe returns a channel to receive messages
+func (b *Broker) Subscribe() <-chan string {
+    ch := make(chan string)
+    b.lock.Lock()
+    b.subscribers[ch] = struct{}{}
+    b.lock.Unlock()
+    return ch
+}
 
+// Unsubscribe removes a subscriber
+func (b *Broker) Unsubscribe(ch <-chan string) {
+    b.lock.Lock()
+    delete(b.subscribers, ch.(chan string))
+    close(ch.(chan string))
+    b.lock.Unlock()
+}
 
+// Publish sends a message to all subscribers
+func (b *Broker) Publish(msg string) {
+    b.lock.RLock()
+    defer b.lock.RUnlock()
+    for ch := range b.subscribers {
+        // Non-blocking send
+        select {
+        case ch <- msg:
+        default:
+            // If subscriber is not ready, skip
+        }
+    }
+}
+
+func main() {
+    broker := NewBroker()
+
+    // Subscriber 1
+    sub1 := broker.Subscribe()
+    go func() {
+        for msg := range sub1 {
+            fmt.Println("Subscriber 1 received:", msg)
+        }
+    }()
+
+    // Subscriber 2
+    sub2 := broker.Subscribe()
+    go func() {
+        for msg := range sub2 {
+            fmt.Println("Subscriber 2 received:", msg)
+        }
+    }()
+
+    // Publish messages
+    messages := []string{"Hello", "World", "Golang", "Concurrency"}
+
+    for _, msg := range messages {
+        broker.Publish(msg)
+    }
+
+    // Unsubscribe
+    broker.Unsubscribe(sub1)
+    broker.Unsubscribe(sub2)
+
+    // Wait to ensure all messages are processed
+    // In real applications, use synchronization
+    // Here, sleep for simplicity
+    time.Sleep(time.Second)
+}
 ```
