@@ -36,58 +36,63 @@ The repository contains a collection of algorithmic and architectural questions 
 - Pointers
   - Holds the memory address of another variable ```*int``` is a pointer to an integer
 
+
+In Go, everything is passed by value.
+
+
 ### Synchronization primitives
 
 #### Mutex
 
-  https://victoriametrics.com/blog/go-sync-mutex/index.html
+https://victoriametrics.com/blog/go-sync-mutex/index.html
 
-  ```
-  package sync
+```
+package sync
 
-  type Mutex struct {
-    state int32 // Waiter ... Starving, Woken, Locked
-                    29 bit      1 bit    1 bit  1 bit
-    sema  uint32 //
-  }
-  ```
+type Mutex struct {
+  state int32 // Waiter ... Starving, Woken, Locked
+                  29 bit      1 bit    1 bit  1 bit
+  sema  uint32 //
+}
+```
 
-  ```
-  func (m *Mutex) Lock() {
-    // Fast path: grab unlocked mutex.
-    if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
-      if race.Enabled {
-        race.Acquire(unsafe.Pointer(m))
-      }
-      return
+```
+func (m *Mutex) Lock() {
+  // Fast path: grab unlocked mutex.
+  if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
+    if race.Enabled {
+      race.Acquire(unsafe.Pointer(m))
     }
-    // Slow path (outlined so that the fast path can be inlined)
-    m.lockSlow()
+    return
   }
-  ```
-    Mutex has two modes: 
-      - Normal (G waiting for the mutex in queue)
-        - New G has priority because they're already running on CPU
-        - Old G need to waking up
-      
-      - Starvation mode 
-        - If a G fails to acquire the lock for more than 1 millisecond
-        - G in queue has more priority
+  // Slow path (outlined so that the fast path can be inlined)
+  m.lockSlow()
+}
+```
   
-  - sync.Mutex
-  - sync.RWMutex - multiple readers acquire the lock simultaneously but only one writer at a time
+Mutex has two modes: 
+  - Normal (G waiting for the mutex in queue)
+    - New G has priority because they're already running on CPU
+    - Old G need to waking up
+  
+  - Starvation mode 
+    - If a G fails to acquire the lock for more than 1 millisecond
+    - G in queue has more priority
 
-  - Mutexes using low-level atomic operations and OS-level synchronization primitives 
-    (like futexes on Linux) provided by the Go runtime
+- sync.Mutex
+- sync.RWMutex - multiple readers acquire the lock simultaneously but only one writer at a time
 
-  - If the mutex is already <b>locked</b>, the runtime adds the goroutine to a <b>waiting queue</b> and blocks it
+- Mutexes using low-level atomic operations and OS-level synchronization primitives 
+  (like futexes on Linux) provided by the Go runtime
 
-  - Atomic operations are supported through specific CPU instructions like 
-    ```test-and-set```, ```compare-and-swap```, or ```fetch-and-add```
+- If the mutex is already <b>locked</b>, the runtime adds the goroutine to a <b>waiting queue</b> and blocks it
 
-  - OS maintains a queue of threads that are waiting for the mutex
+- Atomic operations are supported through specific CPU instructions like 
+  ```test-and-set```, ```compare-and-swap```, or ```fetch-and-add```
 
-  - When mutex is released, the OS wakes up one or more threads from the queue and allows them to try to acquire the mutex
+- OS maintains a queue of threads that are waiting for the mutex
+
+- When mutex is released, the OS wakes up one or more threads from the queue and allows them to try to acquire the mutex
 
 
 #### WaitGroup
@@ -106,32 +111,32 @@ func (*noCopy) Unlock() {}
 ```
 
 #### Cond
-- Used to block goroutines until a condition is met
-  ```
-      var mu sync.Mutex
-      var cond = sync.NewCond(&mu)
+Used to block goroutines until a condition is met
+```
+var mu sync.Mutex
+var cond = sync.NewCond(&mu)
 
-      go func() {
-          mu.Lock()
-          cond.Wait() // Wait for a condition
-          // work after condition is met
-          mu.Unlock()
-      }()
+go func() {
+    mu.Lock()
+    cond.Wait() // Wait for a condition
+    // work after condition is met
+    mu.Unlock()
+}()
 
-      mu.Lock()
-      // prepare condition
-      cond.Signal() // Wake one goroutine waiting on cond
-      mu.Unlock()
-  ```
+mu.Lock()
+// prepare condition
+cond.Signal() // Wake one goroutine waiting on cond
+mu.Unlock()
+```
 
 #### Once
-- Code is executed only once, even if called from multiple goroutines
+Code is executed only once, even if called from multiple goroutines
 ```
-  var once sync.Once
-  once.Do(func() {
-      // initialize something
-  })
-  ```
+var once sync.Once
+once.Do(func() {
+    // initialize something
+})
+```
 
 ### Atomic Operations (low-level atomic memory primitives)
 ```
@@ -143,8 +148,7 @@ atomic.CompareAndSwapInt64(&counter, old, new) // CAS operation
 ```
 
 ### Pointers
-
-- Data in golang is moved by value
+Data in golang is moved by value
 
 ### Strings
 
@@ -512,42 +516,53 @@ The TLB is a small cache inside the processor that helps to reduce latency on tr
 TLB cache miss can cause large latencies because now the hardware has to wait for the OS to scan its page table to locate the right page for the virtual address
 
 
-### Map keys
+### Map
 
-Slice is a good example of a type that can’t be used as a key. Only values that can
-be run through the hash function are eligible. A good way to recognize types that
-can be a key is if the type can be used in a comparison operation. I can’t compare
-two slice values.
+Map not reference types.
+
+```
+type hmap struct {
+  ...
+  buckets unsafe.Pointer // points to the bucket array
+  ...
+}
+```
+
+Each bucket can only hold up to 8 key-value pairs.
+
+Key distribution ```hash(key, seed)```, seed unique per each map instance
+
+
+Key support comparison operation (func, slice, struct can't be)
 
 
 ### Slices vs Array
 
 
 ### Slices
-  - Slice descriptor contains a pointer to an underlying array, along with length and capacity
-    ```
-    type slice struct {
-      array unsafe.Pointer
-      len   int
-      cap   int
-    }
-    ```
-  
-  - The underlying array could be allocated on the heap, but not the slice header itself
-  
-  - If capacity unknown or capacity exceeds 64 KB -> move on the heap
-    
-    ```
-    slice := make([]int, 0, 3)
-    println("slice:", slice, "- slice addr:", &slice)
-    slice = append(slice, 1, 2, 3) 
-    
-    // it’s no longer on our goroutine stack
-    // slice exceeds capacity, address of the underlying array changed
-    slice = append(slice, 4)
-    ```
+Slice descriptor contains a pointer to an underlying array, along with length and capacity
+  ```
+  type slice struct {
+    array unsafe.Pointer
+    len   int
+    cap   int
+  }
+  ```
 
-- Pointer to a slice (&aaa) -> ref to the slice descriptor, not the underlying array
+The underlying array could be allocated on the heap, but not the slice header itself
+  
+If capacity unknown or capacity exceeds 64 KB -> move on the heap  
+  ```
+  slice := make([]int, 0, 3)
+  println("slice:", slice, "- slice addr:", &slice)
+  slice = append(slice, 1, 2, 3) 
+  
+  // it’s no longer on our goroutine stack
+  // slice exceeds capacity, address of the underlying array changed
+  slice = append(slice, 4)
+  ```
+
+Pointer to a slice (&aaa) -> ref to the slice descriptor, not the underlying array
   ```
     aaa := []int{7, 8, 9}
     for i, v := range *(&aaa) {
