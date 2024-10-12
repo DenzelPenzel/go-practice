@@ -4,22 +4,37 @@ The repository contains a collection of algorithmic and architectural questions 
 
 ### Data types
 - boolean 
+
 - int 
   - signed and unsigned
+
 - floating-point 
   - float32, float64
+
 - Complex numbers 
   - complex64, complex128
+
 - Byte 
   - alias for uint8
+
 - Rune 
   - alias for int32, represents a Unicode code point
+  
 - String
-  - represents a sequence of bytes
+  
+  Represents a sequence of bytes
+  
+  **strings.Builder** vs string **concat**
+    - strings.Builder maintains an internal byte slice ([]byte) and grow dynamically
+    - Working without unnecessary copying
+    - Offers O(n) vs O(n^2) for concat
+  
 - Arrays
   - Fixed-size sequences of elements of a single type
+  
 - Slices
   - Dynamic, flexible view into the elements of an array
+
 - Structs
     ```
     type Person struct {
@@ -27,6 +42,7 @@ The repository contains a collection of algorithmic and architectural questions 
         Age  int
     }
     ```
+
 - Maps
   - Unordered collections of key-value pairs ```map[string]int```
 
@@ -169,31 +185,12 @@ fmt.Println(runes) // Output: [72 101 108 108 111 44 32 19990 30028]
 
 - Channels are <b>concurrency primitive</b> and can be used to synchronize operations between G
 
-- Send Operation: send a value into a non-buffered channel, it will block until another goroutine is ready to receive that value
+#### Non-buffered channel:
+  - Send a value into a *non-buffered channel*, it will block until another G is ready to receive that value
+  - Get value will block until another G sends a value into that channel
 
-- Receive Operation: receive from a non-buffered channel, it will block until another goroutine sends a value into that channel
 
-```
-package main
 
-import (
-	"fmt"
-)
-
-func main() {
-	ch := make(chan int)
-
-	go func() {
-    // operation blocks if there is no corresponding receive operation waiting
-    // remain blocked until another goroutine executes <-ch to receive the value
-		ch <- 42 
-		fmt.Println("Sent value")
-	}()
-
-	value := <-ch // Receiving goroutine will block here until the sending goroutine sends
-	fmt.Println("Received value:", value)
-}
-```
 
 ### If you create a channel, send data into it, but never read from it
 
@@ -605,12 +602,6 @@ slice2 := slice1[2:4]                       // len: 2 cap: 3
 
 ```slice2``` only allows me to access the elements at index 2 and 3 (C and D) of the original slice’s backing array. The length of slice2 is 2 and not 5 like in slice1 and the capacity is 3 since there are now 3 elements from that pointer position.
 
-### strings.Builder vs string concat
-- strings.Builder maintains an internal byte slice ([]byte) and grow dynamically
-- Working without unnecessary copying
-- Offers O(n) vs O(n^2) for concat
-
-
 ### Race condition 
 - Two or more goroutines access shared data concurrently
 - Issues:
@@ -619,7 +610,6 @@ slice2 := slice1[2:4]                       // len: 2 cap: 3
   - Hard to Debug
   
   
-
 ### Zero Value Concept
 
 Every single value I construct in Go is initialized at least to its zero value state
