@@ -47,27 +47,27 @@ func Run(fileName string) string {
 	}
 
 	chunks := make([]int, 0, chunkSize)
-	start := 0
+	s := 0
 
-	for start < len(data) {
-		start += chunkSize
-		if start >= len(data) {
+	for s < len(data) {
+		e := s + chunkSize
+		if e >= len(data) {
 			chunks = append(chunks, len(data))
 			break
 		}
-		nlPos := bytes.IndexByte(data[start:], '\n')
-		if nlPos == -1 {
+		nl := bytes.IndexByte(data[e:], '\n')
+		if nl < 0 {
 			chunks = append(chunks, len(data))
 			break
 		}
-		start += nlPos + 1
-		chunks = append(chunks, start)
+		e += nl + 1
+		chunks = append(chunks, e)
+		s = e
 	}
 
 	var wg sync.WaitGroup
-
 	groups := make([]*Bucket, len(chunks))
-	start = 0
+	start := 0
 
 	for i, end := range chunks {
 		wg.Add(1)
@@ -77,14 +77,14 @@ func Run(fileName string) string {
 			var b Bucket
 
 			for start < end {
-				firstBytes := *(*uint64)(unsafe.Pointer(&data[start]))
+				w := *(*uint64)(unsafe.Pointer(&data[start]))
 
 				// fmt.Printf("workerId: %d, partition: %v -> %v, semi: %v\n", workerId, start, end, findSemicolon(uint64(firstBytes)))
 
 				var city []byte
 
 				// check the presence of a semicolon within the initial 8 bytes
-				if idx := findSemicolon(firstBytes); idx >= 0 {
+				if idx := findSemicolon(w); idx >= 0 {
 					city = data[start : start+uint64(idx)]
 					start += uint64(idx) + 1
 				} else {
@@ -100,10 +100,10 @@ func Run(fileName string) string {
 					}
 				}
 
-				// generate a hash using the current city name
-				hashKey := createHash(firstBytes, len(city))
-				u := *(*uint64)(unsafe.Pointer(&data[start]))
-				temp, pos := parseNumber(u)
+				hashKey := createHash(w, len(city))
+
+				w = *(*uint64)(unsafe.Pointer(&data[start]))
+				temp, pos := parseNumber(w)
 
 				node := b.Insert(hashKey, city)
 				node.min = min(node.min, temp)
@@ -113,10 +113,8 @@ func Run(fileName string) string {
 
 				groups[workerId] = &b
 
-				// move start pointer
 				start += pos
 			}
-
 		}(i, uint64(start), uint64(end))
 
 		start = end
@@ -124,25 +122,25 @@ func Run(fileName string) string {
 
 	wg.Wait()
 
-	totalCities := 0
-	for i := range groups {
-		totalCities += len(groups[i].Keys())
+	total := 0
+	for _, b := range groups {
+		total += len(b.Keys())
 	}
 
-	cities := make([]string, totalCities)
+	cities := make([]string, total)
 
-	tmp := cities
-	for i := range groups {
-		c := groups[i].Keys()
-		copy(tmp, c)
-		tmp = tmp[len(c):]
+	o := 0
+	for _, b := range groups {
+		ks := b.Keys()
+		copy(cities[o:], ks)
+		o += len(ks)
 	}
 
 	slices.Sort(cities)
 	cities = slices.Compact(cities)
 
-	var stringsBuilder strings.Builder
-	stringsBuilder.WriteString(fmt.Sprintf("{"))
+	var sb strings.Builder
+	sb.WriteByte('{')
 
 	for i, city := range cities {
 		n := Node{
@@ -164,21 +162,23 @@ func Run(fileName string) string {
 		}
 
 		if i > 0 {
-			stringsBuilder.WriteString(", ")
+			sb.WriteString(", ")
 		}
 
-		stringsBuilder.WriteString(fmt.Sprintf("%s=%.1f/%.1f/%.1f", city,
+		sb.WriteString(fmt.Sprintf("%s=%.1f/%.1f/%.1f", city,
 			utils.Round(float64(n.min)/10.0),
 			utils.Round(float64(n.sum)/10.0/float64(n.count)),
 			utils.Round(float64(n.max)/10.0)))
 	}
 
-	stringsBuilder.WriteString(fmt.Sprintf("}\n"))
-
-	return stringsBuilder.String()
+	sb.WriteString("}\n")
+	return sb.String()
 }
 
 func findSemicolon(word uint64) int {
+	// See "determine if a word has a byte equal to n", from "Bit Twiddling
+	// Hacks",
+	// https://graphics.stanford.edu/~seander/bithacks.html.
 	maskedInput := word ^ 0x3B3B3B3B3B3B3B3B
 	maskedInput = (maskedInput - 0x0101010101010101) & ^maskedInput & 0x8080808080808080
 	if maskedInput == 0 {
