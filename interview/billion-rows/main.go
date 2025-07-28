@@ -10,7 +10,7 @@ import (
 	"runtime/trace"
 	"time"
 
-	"github.com/DenzelPenzel/go-leetcode/interview/billion-rows/sol1"
+	"github.com/DenzelPenzel/go-leetcode/interview/billion-rows/sol2"
 )
 
 var name = flag.String("name", "", "path to the file")
@@ -52,7 +52,7 @@ func main() {
 		log.Fatalf("Filename param is missing")
 	}
 
-	sol1.Run("./data/" + *name)
+	sol2.Run("./data/" + *name)
 
 	fmt.Println(time.Now().Sub(start))
 

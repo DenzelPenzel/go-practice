@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/DenzelPenzel/go-leetcode/interview/billion-rows/utils"
 )
 
 type node struct {
@@ -62,11 +64,10 @@ func Run(fileName string) string {
 		}
 		m := mapping[city]
 		stringsBuilder.WriteString(fmt.Sprintf("%s=%.1f/%.1f/%.1f", city,
-			float64(m.min)/10.0,
-			float64(m.sum)/10.0/float64(m.count),
-			float64(m.max)/10.0))
+			utils.Round(float64(m.min)/10.0),
+			utils.Round(float64(m.sum)/10.0/float64(m.count)),
+			utils.Round(float64(m.max)/10.0)))
 	}
-
 	stringsBuilder.WriteString(fmt.Sprintf("}\n"))
 
 	return stringsBuilder.String()
