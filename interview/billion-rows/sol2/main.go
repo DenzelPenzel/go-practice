@@ -2,6 +2,7 @@ package sol2
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"math"
 	"math/bits"
@@ -77,7 +78,8 @@ func Run(fileName string) string {
 			var b Bucket
 
 			for start < end {
-				w := *(*uint64)(unsafe.Pointer(&data[start]))
+				w := binary.LittleEndian.Uint64(data[start : start+8])
+				// w := *(*uint64)(unsafe.Pointer(&data[start]))
 
 				// fmt.Printf("workerId: %d, partition: %v -> %v, semi: %v\n", workerId, start, end, findSemicolon(uint64(firstBytes)))
 
@@ -91,7 +93,7 @@ func Run(fileName string) string {
 					// presence of the a semicolon within the first 8 bytes not found
 					// move the pointer and check the next 8 bytes
 					for i := start + 8; i < end; i += 8 {
-						u := *(*uint64)(unsafe.Pointer(&data[i]))
+						u := binary.LittleEndian.Uint64(data[i : i+8])
 						if idx = findSemicolon(u); idx >= 0 {
 							city = data[start : i+uint64(idx)]
 							start = i + uint64(idx) + 1
@@ -100,21 +102,20 @@ func Run(fileName string) string {
 					}
 				}
 
-				hashKey := createHash(w, len(city))
-
-				w = *(*uint64)(unsafe.Pointer(&data[start]))
+				h := createHash(w, len(city))
+				w = binary.LittleEndian.Uint64(data[start : start+8])
 				temp, pos := parseNumber(w)
 
-				node := b.Insert(hashKey, city)
+				node := b.Insert(h, city)
 				node.min = min(node.min, temp)
 				node.max = max(node.max, temp)
 				node.sum += int64(temp)
 				node.count++
 
-				groups[workerId] = &b
-
 				start += pos
 			}
+
+			groups[workerId] = &b
 		}(i, uint64(start), uint64(end))
 
 		start = end
