@@ -1,6 +1,6 @@
 module github.com/DenzelPenzel/go-leetcode
 
-go 1.21
+go 1.24.0
 
 require (
 	github.com/stretchr/testify v1.10.0
@@ -13,5 +13,6 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/cobra v1.4.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
