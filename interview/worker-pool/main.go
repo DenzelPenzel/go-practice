@@ -35,6 +35,13 @@ func main() {
 
 	close(jobQueue) // Close the job queue once all jobs are submitted
 
+	// done := make(chan struct{})
+	// go func() {
+	// 	defer close(done)
+	// 	wg.Wait()
+	// }()
+	// <-done
+
 	wg.Wait()
 }
 
