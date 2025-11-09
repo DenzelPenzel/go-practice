@@ -2,117 +2,147 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
 	"time"
 )
 
+var ErrSemaphoreClosed = errors.New("semaphore closed")
+
 type Semaphore struct {
-	sem chan struct{}
-	// Optional: To ensure that Close is called only once
-	mu     sync.Mutex
-	closed bool
+	permits chan struct{}
+	closed  chan struct{}
+	once    sync.Once
 }
 
-func NewSemaphore(capacity int) *Semaphore {
-	if capacity <= 0 {
+func NewSemaphore(size int) *Semaphore {
+	if size <= 0 {
 		panic("semaphore capacity must be positive")
 	}
+
+	permits := make(chan struct{}, size)
+	for i := 0; i < size; i++ {
+		permits <- struct{}{}
+	}
+
 	return &Semaphore{
-		sem: make(chan struct{}, capacity),
+		permits: permits,
+		closed:  make(chan struct{}),
 	}
 }
 
-// Acquire tries to acquire a semaphore permit.
-// It blocks until a permit is available or the context is canceled.
-// Returns an error if the context is canceled.
 func (s *Semaphore) Acquire(ctx context.Context) error {
 	select {
-	case s.sem <- struct{}{}:
-		return nil
 	case <-ctx.Done():
-		return ctx.Err()
+		return fmt.Errorf("acquire permit: %w", ctx.Err())
+
+	case <-s.closed:
+		return ErrSemaphoreClosed
+
+	case <-s.permits:
+		if s.isClosed() {
+			s.Release()
+			return ErrSemaphoreClosed
+		}
+		return nil
 	}
 }
 
-// TryAcquire attempts to acquire a semaphore permit without blocking.
-// Returns true if a permit was acquired, false otherwise.
 func (s *Semaphore) TryAcquire() bool {
 	select {
-	case s.sem <- struct{}{}:
+	case <-s.permits:
+		if s.isClosed() {
+			s.Release()
+			return false
+		}
 		return true
+
 	default:
 		return false
 	}
 }
 
-// Release releases a semaphore permit.
-// It panics if there are more releases than acquires
 func (s *Semaphore) Release() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.closed {
-		panic("semaphore is closed")
-	}
 	select {
-	case <-s.sem:
-		// Successfully released
+	case s.permits <- struct{}{}:
+		return
+
 	default:
-		panic("release called more times than acquire")
+		panic("semaphore: release without matching acquire")
 	}
-
 }
 
-// Close closes the semaphore, releasing any resources.
-// After closing, no further Acquire calls should be made.
 func (s *Semaphore) Close() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if !s.closed {
-		close(s.sem)
-		s.closed = true
+	s.once.Do(func() {
+		close(s.closed)
+	})
+}
+
+func (s *Semaphore) isClosed() bool {
+	select {
+	case <-s.closed:
+		return true
+
+	default:
+		return false
 	}
 }
 
-// Make a custom waitGroup on a semaphore
+const (
+	maxConcurrentWorkers = 3
+	totalTasks           = 10
+	acquireTimeout       = 2 * time.Second
+	simulatedWork        = time.Second
+)
 
-/*
-We want to make a semaphore that will wait for five goroutines to complete!
-
-1. Create buffered channel, inside each goroutine we put a value in it
-2. At the end we will expect that everything is ok - we will subtract all the values ​​from the channel
-*/
 func main() {
-	sem := NewSemaphore(3)
+	sem := NewSemaphore(maxConcurrentWorkers)
 	defer sem.Close()
 
 	var wg sync.WaitGroup
+	ctx := context.Background()
 
-	for i := 1; i <= 10; i++ {
+	for id := 1; id <= totalTasks; id++ {
 		wg.Add(1)
 
 		go func(id int) {
 			defer wg.Done()
-
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			defer cancel() // Ensures that resources are freed when the goroutine completes
-
-			if err := sem.Acquire(ctx); err != nil {
-				log.Printf("Goroutine %d: failed to acquire semaphore: %v", id, err)
-				return
-			}
-
-			// Ensure that the permit is released
-			defer sem.Release()
-
-			// Simulate work
-			log.Printf("Goroutine %d: acquired semaphore", id)
-			time.Sleep(1 * time.Second)
-			log.Printf("Goroutine %d: released semaphore", id)
-		}(i)
+			runWorker(ctx, sem, id)
+		}(id)
 	}
 
 	wg.Wait()
 	fmt.Println("Done!")
+}
+
+func runWorker(ctx context.Context, sem *Semaphore, id int) {
+	ctx, cancel := context.WithTimeout(ctx, acquireTimeout)
+	defer cancel()
+
+	if err := sem.Acquire(ctx); err != nil {
+		switch {
+		case errors.Is(err, ErrSemaphoreClosed):
+			log.Printf("worker %d: semaphore closed", id)
+
+		case errors.Is(err, context.DeadlineExceeded):
+			log.Printf("worker %d: acquire timed out", id)
+
+		default:
+			log.Printf("worker %d: unable to acquire permit: %v", id, err)
+		}
+		return
+	}
+	defer sem.Release()
+
+	log.Printf("worker %d: acquired permit, execute work", id)
+
+	select {
+	case <-time.After(simulatedWork):
+		log.Printf("worker %d: completed work", id)
+
+	case <-ctx.Done():
+		log.Printf("worker %d: context cancelled: %v", id, ctx.Err())
+	}
 }

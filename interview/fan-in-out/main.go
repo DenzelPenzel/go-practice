@@ -7,27 +7,13 @@ import (
 
 func factorialWorker(in <-chan int, out chan<- int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	for {
-		res := 1
-		select {
-		case v, ok := <-in:
-			if !ok {
-				return
-			}
-			for i := 2; i <= v; i++ {
-				res *= i
-			}
-			out <- res
+	for v := range in {
+		result := 1
+		for i := 2; i <= v; i++ {
+			result *= i
 		}
+		out <- result
 	}
-
-	// for v := range in {
-	// 	result := 1
-	// 	for i := 2; i <= v; i++ {
-	// 		result *= i
-	// 	}
-	// 	out <- result
-	// }
 }
 
 func main() {
@@ -42,13 +28,16 @@ func main() {
 	// Generate numbers in separate goroutines
 	go func() {
 		defer close(numChan)
+
 		for i := 0; i < 10; i++ {
 			generationWG.Add(1)
-			go func(mm chan<- int, i int, group *sync.WaitGroup) {
-				defer group.Done()
-				mm <- i + 1
-			}(numChan, i, &generationWG)
+
+			go func(i int, grp *sync.WaitGroup) {
+				defer grp.Done()
+				numChan <- i + 1
+			}(i, &generationWG)
 		}
+
 		generationWG.Wait()
 	}()
 
@@ -66,7 +55,7 @@ func main() {
 		close(resultChan) // <- if comment this line will be deadlock!
 	}()
 
-	// fan-in
+	// keep reading from resultChan until it is closed
 	for v := range resultChan {
 		fmt.Println("Result:", v)
 	}

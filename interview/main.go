@@ -17,22 +17,23 @@ func factorialWorker(in <-chan int, out chan<- int, wg *sync.WaitGroup) {
 }
 
 func main() {
-	numWorkers := 5
-
+	numWorkers := 2
 	numChan := make(chan int, 10)
 	resultChan := make(chan int, 10)
 	var generationWG sync.WaitGroup
 
-	// Generate numbers in separate goroutines
 	go func() {
 		defer close(numChan)
+
 		for i := 0; i < 10; i++ {
 			generationWG.Add(1)
+
 			go func(i int, group *sync.WaitGroup) {
 				defer group.Done()
 				numChan <- i + 1
 			}(i, &generationWG)
 		}
+
 		generationWG.Wait()
 	}()
 
@@ -46,11 +47,13 @@ func main() {
 
 	// Wait for all workers to finish and then close resultChan
 	go func() {
+		fmt.Println("waiting for workers to finish...")
 		wg.Wait()
+		fmt.Println("workers finished, closing resultChan...")
 		close(resultChan) // <- if comment this line will be deadlock!
 	}()
 
-	// fan-in
+	// keep reading from resultChan until it is closed
 	for v := range resultChan {
 		fmt.Println("Result:", v)
 	}

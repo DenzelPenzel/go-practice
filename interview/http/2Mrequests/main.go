@@ -11,7 +11,6 @@ import (
 
 const (
 	TotalRequests  = 2000000
-	Concurrency    = 1000
 	RequestURL     = "https://example.com/api"
 	TimeoutSeconds = 10
 )
@@ -19,14 +18,13 @@ const (
 func worker(id int, jobs <-chan int, results chan<- error, client *http.Client, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for j := range jobs {
-		err := sendRequest(client, j)
-		results <- err
+		results <- sendRequest(client, j)
 	}
 }
 
 func main() {
-	runtime.GOMAXPROCS(16)
-	jobs := make(chan int, Concurrency)
+	workers := runtime.NumCPU()
+	jobs := make(chan int, workers)
 	results := make(chan error, TotalRequests)
 
 	client := &http.Client{
@@ -35,7 +33,7 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < Concurrency; i++ {
+	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go worker(i, jobs, results, client, &wg)
 	}
