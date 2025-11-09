@@ -1,15 +1,25 @@
 package main
 
 import (
+	"fmt"
+	"strings"
 	"time"
+
 	"github.com/emirpasic/gods/maps/treemap"
 )
-
 
 // @formatter:off
 var mod = int(1e9) + 7
 var dirs = [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 var length = int(^uint(0) >> 1) // Set length to max int value
+
+func concatStrings(strs ...string) string {
+	var sb strings.Builder
+	for _, str := range strs {
+		sb.WriteString(str)
+	}
+	return sb.String()
+}
 
 // Clearing maps
 func clearMaps(m map[string]int) {
@@ -18,16 +28,16 @@ func clearMaps(m map[string]int) {
 	}
 }
 
-// Fill the array 
-A := make([]int, 10)
-tmp := A
-fmt.Println(A) // [0,0,0,0,0,0,0,0,0,0]
-for _, c := range [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} {
-	copy(tmp, c) // [1,2,3,0,0,0,0,0,0,0]
-	tmp = tmp[len(c):] // [0,0,0,0,0,0,0]
+// Fill the array
+func fillArray() {
+	A := make([]int, 10)
+	tmp := A
+	fmt.Println(A) // [0,0,0,0,0,0,0,0,0,0]
+	for _, c := range [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} {
+		copy(tmp, c)       // [1,2,3,0,0,0,0,0,0,0]
+		tmp = tmp[len(c):] // [0,0,0,0,0,0,0]
+	}
 }
-fmt.Println(nums)
-
 
 // Increasing the length of a slice
 func incSlice() {
@@ -39,13 +49,13 @@ func incSlice() {
 }
 
 func sleep(s int) {
-	<- time.After(time.Second * time.Duration(s))
+	<-time.After(time.Second * time.Duration(s))
 }
 
-func cloneIntArray(old []int) []int { 
-	clone := make([]int, len(old)); 
-	copy(clone, old); 
-	return clone 
+func cloneIntArray(old []int) []int {
+	clone := make([]int, len(old))
+	copy(clone, old)
+	return clone
 }
 
 func createInt1dSlice(params ...int) []int {
@@ -92,12 +102,14 @@ func getSieve(n int) []bool {
 	}
 	return _sieve
 }
+
 // least common multiple
 // a = 4 b = 6 then res = 12
-func lcm(a int, b int) int { 
-	return (a * b) / gcd(a, b) 
+func lcm(a int, b int) int {
+	return (a * b) / gcd(a, b)
 }
-// greatest common divisor 
+
+// greatest common divisor
 // a = 8 b = 12 then res = 4
 func gcd(a int, b int) int {
 	if b == 0 {
@@ -211,11 +223,11 @@ type Seg struct {
 	n    int
 }
 
-func NewSeg(n int) *Seg { 
+func NewSeg(n int) *Seg {
 	return &Seg{
-		tree: make([]int, 2*n), 
-		n: n,
-	} 
+		tree: make([]int, 2*n),
+		n:    n,
+	}
 }
 func NewSegFromArray(array []int) *Seg {
 	n := len(array)
