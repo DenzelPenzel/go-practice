@@ -52,10 +52,14 @@ func (rb *RingBuffer) Pop() (interface{}, error) {
 		rb.cond.Wait()
 	}
 
-	item := rb.buffer[rb.head]
+	v := rb.buffer[rb.head]
+	// Zero-out the slot to avoid retaining references unnecessarily
+	var zero interface{}
+	rb.buffer[rb.head] = zero
+
 	rb.head = (rb.head + 1) % rb.capacity
 	rb.size--
-	return item, nil
+	return v, nil
 }
 
 func (rb *RingBuffer) Size() int {
@@ -75,6 +79,7 @@ func (rb *RingBuffer) IsFull() bool {
 	defer rb.mx.Unlock()
 	return rb.size == rb.capacity
 }
+
 func (rb *RingBuffer) Clear() {
 	rb.mx.Lock()
 	defer rb.mx.Unlock()

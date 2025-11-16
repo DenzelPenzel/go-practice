@@ -274,4 +274,6 @@ func main() {
 
 	//
 
+	var v int = 10
+	fmt.Println(v)
 }
