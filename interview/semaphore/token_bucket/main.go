@@ -17,6 +17,7 @@ type Semaphore struct {
 	once    sync.Once
 }
 
+// "Token Bucket" pattern
 func NewSemaphore(size int) *Semaphore {
 	if size <= 0 {
 		panic("semaphore capacity must be positive")
