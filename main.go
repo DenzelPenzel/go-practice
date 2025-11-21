@@ -5,6 +5,7 @@ import (
 	"math"
 	"reflect"
 	"sort"
+	"time"
 )
 
 type Shop struct {
@@ -276,4 +277,16 @@ func main() {
 
 	var v int = 10
 	fmt.Println(v)
+
+	//
+	ch := make(chan int)
+
+	go func() {
+		time.Sleep(time.Second * 2)
+		close(ch)
+	}()
+
+	fmt.Println("Waiting for channel to be closed...")
+	<-ch
+	fmt.Println("Channel closed")
 }
