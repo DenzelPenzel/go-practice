@@ -47,9 +47,7 @@ func main() {
 
 	// Wait for all workers to finish and then close resultChan
 	go func() {
-		fmt.Println("waiting for workers to finish...")
 		wg.Wait()
-		fmt.Println("workers finished, closing resultChan...")
 		close(resultChan) // <- if comment this line will be deadlock!
 	}()
 
